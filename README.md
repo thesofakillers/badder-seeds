@@ -62,6 +62,29 @@ subdirectory which contains the actual implementation details.
 
 ## Development
 
+### Packages and Environment
+
 If you wish to contribute to this repository, please make use of
 [Poetry](./https://python-poetry.org/) when installing new packages, as this
 makes dependency management much easier and transparent.
+
+We strongly suggest using a virtual environment. Poetry will create an
+environment if one is not already active, using information from the
+[pyproject.toml](pyproject.toml) file.
+
+Alternatively of course, one can also handle environments on their own, e.g. by
+making one with conda and activating it before usage. Poetry will automatically
+detect this environment and know to install packages in this particular
+environment. If you decide to go this route, just ensure the python version for
+the environment is 3.9. For conda, this would consist in creating an environment
+as such:
+
+```bash
+conda create --name badseeds python=3.9
+```
+
+### Contributing
+
+Approved contributors are able to (and should) create their own branch and work
+there, before merging to the main branch. External contributors can instead fork
+the repository and open a pull request when ready.
