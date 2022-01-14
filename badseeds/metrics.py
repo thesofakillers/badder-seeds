@@ -76,24 +76,28 @@ def calc_weat(
 
 
 def doPCA(word_pairs, embedding, num_components = 10):
-    """PCA metric as described in Bolukbasi et al. (2016)
-    
-    original code base: https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
+    """
+    PCA metric as described in Bolukbasi et al. (2016).
+    original code base o be found: https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
 
     Parameters
     ----------
-    word_pairs: list of strings
+    word_pairs : array- like of strings
+        (10,2) array of strings, 
     
-    embedding: embedding ..  
+    embedding : embeddings
+        () 
 
-    num_components: int 
+    num_components : int 
+        indicates number of principal components wanted for extraction
 
     Returns
     -------
-    pca: matrix of floats
-        (10, B)
+    pca : matrix of floats
+        (num_components, B) matrix of floats, consitutes principle components of bias direction = bias subspace
 
     """
+
     matrix = []
     for a, b in word_pairs:
         center = (embedding.v(a) + embedding.v(b))/2
