@@ -1,6 +1,7 @@
 """Functionality for metrics used in our work"""
 import numpy as np
 import numpy.typing as npt
+from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
 
 
@@ -74,7 +75,33 @@ def calc_weat(
     return weat_score
 
 
-def calc_pca():
-    """PCA metric as described in Bolukbasi et al. (2016)"""
-    # TODO
-    raise NotImplementedError()
+def doPCA(word_pairs, embedding, num_components = 10):
+    """PCA metric as described in Bolukbasi et al. (2016)
+    
+    original code base: https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
+
+    Parameters
+    ----------
+    word_pairs: list of strings
+    
+    embedding: embedding ..  
+
+    num_components: int 
+
+    Returns
+    -------
+    pca: matrix of floats
+        (10, B)
+
+    """
+    matrix = []
+    for a, b in word_pairs:
+        center = (embedding.v(a) + embedding.v(b))/2
+        matrix.append(embedding.v(a) - center)
+        matrix.append(embedding.v(b) - center)
+    matrix = np.array(matrix)
+    pca = PCA(n_components = num_components)
+    pca.fit(matrix)
+    # bar(range(num_components), pca.explained_variance_ratio_)
+
+    return pca
