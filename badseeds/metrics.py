@@ -82,7 +82,7 @@ def doPCA(word_pairs, embedding, num_components = 10):
 
     Parameters
     ----------
-    word_pairs : array- like of strings
+    word_pairs : array - like of strings
         (10,2) array of strings, 
     
     embedding : embeddings
