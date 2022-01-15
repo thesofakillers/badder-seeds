@@ -75,18 +75,21 @@ def calc_weat(
     return weat_score
 
 
-def doPCA(word_pairs, embedding, num_components = 10):
+def do_pca(word_pairs, embedding, num_components = 10):
     """
     PCA metric as described in Bolukbasi et al. (2016).
-    original code base o be found: https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
+    original code base of the authors: https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
+
+    Embeddings of bias word pairs are used to calculate the bias subspace.
+    Number of words in each word set N.
 
     Parameters
     ----------
-    word_pairs : array - like of strings
+    word_pairs : array-like of strings
         (10,2) array of strings, 
     
-    embedding : embeddings
-        () 
+    embedding : dictionary of strings mapped to array of floats
+        (N) string mapped to array of floats, maps word to its embedding 
 
     num_components : int 
         indicates number of principal components wanted for extraction
@@ -100,9 +103,9 @@ def doPCA(word_pairs, embedding, num_components = 10):
 
     matrix = []
     for a, b in word_pairs:
-        center = (embedding.v(a) + embedding.v(b))/2
-        matrix.append(embedding.v(a) - center)
-        matrix.append(embedding.v(b) - center)
+        center = (embedding[a] + embedding[b])/2
+        matrix.append(embedding[a] - center)
+        matrix.append(embedding[b] - center)
     matrix = np.array(matrix)
     pca = PCA(n_components = num_components)
     pca.fit(matrix)
