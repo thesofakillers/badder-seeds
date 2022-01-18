@@ -16,7 +16,7 @@ def download_and_unzip(destination, out_file_path, file_id):
 		with gzip.open(destination, 'rb') as f_in:
 			with open(out_file_path, 'wb') as f_out:
 				shutil.copyfileobj(f_in, f_out)
-		print(f'Finished downloading the {name} dataset')
+		print(f'Finished unzipping the {name} dataset')
 
 if __name__ == "__main__":
 	#Create folder for data
@@ -41,3 +41,10 @@ if __name__ == "__main__":
 	out_file_path = '../data/GoogleNews-vectors-negative300.bin'
 	file_id = '0B7XkCwpI5KDYNlNUTTlSS21pQmM'
 	download_and_unzip(destination, out_file_path, file_id)
+
+	#Download the NYT dataset
+	destination = '../data/nytimes_news_articles.txt.gz'
+	out_file_path = '../data/nytimes_news_articles.txt'
+	file_id = '1ITZ6FZq4_C2hs7k540ZYiReNTlWGt4nz'
+	download_and_unzip(destination, out_file_path, file_id)
+	
