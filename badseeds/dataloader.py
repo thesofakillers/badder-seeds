@@ -1,48 +1,15 @@
-import numpy as np
 import os
-import torch
 import torchtext
-import requests
 import gzip
-import json
 import shutil
-import binascii
+import gdown
 
-
-def download_file_from_google_drive(id, destination):
-	URL = "https://docs.google.com/uc?export=download"
-
-	session = requests.Session()
-
-	response = session.get(URL, params = { 'id' : id }, stream = True)
-	token = get_confirm_token(response)
-
-	if token:
-		params = { 'id' : id, 'confirm' : token }
-		response = session.get(URL, params = params, stream = True)
-
-	save_response_content(response, destination)    
-
-def get_confirm_token(response):
-	for key, value in response.cookies.items():
-		if key.startswith('download_warning'):
-			return value
-
-	return None
-
-def save_response_content(response, destination):
-	CHUNK_SIZE = 32768
-
-	with open(destination, "wb") as f:
-		for chunk in response.iter_content(CHUNK_SIZE):
-			if chunk: # filter out keep-alive new chunks
-				f.write(chunk)
 
 def download_and_unzip(destination, out_file_path, file_id):
 	name = destination.split('.')[-3]
 	if not os.path.isfile(destination):
-		print(f"Downloading the {name} dataset")
-		download_file_from_google_drive(file_id, destination)
+		url = 'https://drive.google.com/uc?id=' + file_id
+		gdown.download(url, destination, quiet=False)
 	
 	if not os.path.isfile(out_file_path):
 		print(f"Unzipping the {name} dataset")
