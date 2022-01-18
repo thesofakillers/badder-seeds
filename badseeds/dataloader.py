@@ -3,6 +3,7 @@ import torchtext
 import gzip
 import shutil
 import gdown
+from zipfile import ZipFile
 
 
 def download_and_unzip(destination, out_file_path, file_id):
@@ -13,10 +14,24 @@ def download_and_unzip(destination, out_file_path, file_id):
 	
 	if not os.path.isfile(out_file_path):
 		print(f"Unzipping the {name} dataset")
-		with gzip.open(destination, 'rb') as f_in:
-			with open(out_file_path, 'wb') as f_out:
-				shutil.copyfileobj(f_in, f_out)
-		print(f'Finished unzipping the {name} dataset')
+
+		extension = out_file_path.split('.')[-1]
+		if extension == 'gz':
+			with gzip.open(destination, 'rb') as f_in:
+				with open(out_file_path, 'wb') as f_out:
+					shutil.copyfileobj(f_in, f_out)
+			print(f'Finished unzipping the {name} dataset')
+
+		elif extension == 'zip':
+			with ZipFile(destination, 'rb') as f_in:
+				with open(out_file_path, 'wb') as f_out:
+					shutil.copyfileobj(f_in, f_out)
+			print(f'Finished unzipping the {name} dataset')
+
+		else:
+			raise ValueError("Extension not supported yet")
+
+
 
 if __name__ == "__main__":
 	#Create folder for data
@@ -48,3 +63,7 @@ if __name__ == "__main__":
 	file_id = '1ITZ6FZq4_C2hs7k540ZYiReNTlWGt4nz'
 	download_and_unzip(destination, out_file_path, file_id)
 	
+	destination = '../data/w2v_gnews_small.zip'
+	out_file_path = '../data/w2v_gnews_small.txt'
+	file_id = '1NH6jcrg8SXbnhpIXRIXF_-KUE7wGxGaG'
+	download_and_unzip(destination, out_file_path, file_id)
