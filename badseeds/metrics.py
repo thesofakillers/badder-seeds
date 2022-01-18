@@ -75,7 +75,7 @@ def calc_weat(
     return weat_score
 
 
-def do_pca(seed1, seed2, embedding, num_components = 10):
+def do_pca(seed1, seed2, embedding, num_components=10):
     """
     PCA metric as described in Bolukbasi et al. (2016).
     original code base of the authors: https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
@@ -86,15 +86,15 @@ def do_pca(seed1, seed2, embedding, num_components = 10):
     Parameters
     ----------
     seed1 : array-like of strings
-        (10,1) array of strings, 
+        (10,1) array of strings,
 
      seed2 : array-like of strings
-        (10,1) array of strings, 
+        (10,1) array of strings,
 
     embedding : dictionary of strings mapped to array of floats
-        (N) string mapped to array of floats, maps word to its embedding 
+        (N) string mapped to array of floats, maps word to its embedding
 
-    num_components : int 
+    num_components : int
         indicates number of principal components wanted for extraction
 
     Returns
@@ -105,12 +105,12 @@ def do_pca(seed1, seed2, embedding, num_components = 10):
     """
 
     matrix = []
-    for a, b in zip(seed1,seed2):
-        center = (embedding[a] + embedding[b])/2
+    for a, b in zip(seed1, seed2):
+        center = (embedding[a] + embedding[b]) / 2
         matrix.append(embedding[a] - center)
         matrix.append(embedding[b] - center)
     matrix = np.array(matrix)
-    pca = PCA(n_components = num_components)
+    pca = PCA(n_components=num_components)
     pca.fit(matrix)
 
     return pca
