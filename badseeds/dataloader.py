@@ -46,10 +46,16 @@ if __name__ == "__main__":
         )
         print("Finished downloading the WikiText103 dataset")
 
-    # Download the GoodReads dataset
-    destination = "../data/goodreads_reviews_dedup.json.gz"
-    out_file_path = "../data/goodreads_reviews_dedup.json"
-    file_id = "1pQnXa7DWLdeUpvUFsKusYzwbA5CAAZx7"
+    # Download the GoodReads History Biography dataset
+    destination = "../data/goodreads_reviews_history_biography.json.gz"
+    out_file_path = "../data/goodreads_reviews_history_biography.json"
+    file_id = "1lDkTzM6zpYU-HGkVAQgsw0dBzik-Zde9"
+    download_and_unzip(destination, out_file_path, file_id)
+
+    # Download the GoodReads Romance dataset
+    destination = "../data/goodreads_reviews_romance.json.gz"
+    out_file_path = "../data/goodreads_reviews_romance.json"
+    file_id = "1NpFsDQKBj_lrTzSASfyKbmkSykzN88wE"
     download_and_unzip(destination, out_file_path, file_id)
 
     # Download the GoogleNews dataset
@@ -64,6 +70,7 @@ if __name__ == "__main__":
     file_id = "1ITZ6FZq4_C2hs7k540ZYiReNTlWGt4nz"
     download_and_unzip(destination, out_file_path, file_id)
 
+    # Download Gnews small dataset
     destination = "../data/w2v_gnews_small.zip"
     out_file_path = "../data/w2v_gnews_small.txt"
     file_id = "1NH6jcrg8SXbnhpIXRIXF_-KUE7wGxGaG"
