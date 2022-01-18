@@ -15,7 +15,7 @@ def download_and_unzip(destination, out_file_path, file_id):
 	if not os.path.isfile(out_file_path):
 		print(f"Unzipping the {name} dataset")
 
-		extension = out_file_path.split('.')[-1]
+		extension = destination.split('.')[-1]
 		if extension == 'gz':
 			with gzip.open(destination, 'rb') as f_in:
 				with open(out_file_path, 'wb') as f_out:
@@ -23,7 +23,7 @@ def download_and_unzip(destination, out_file_path, file_id):
 			print(f'Finished unzipping the {name} dataset')
 
 		elif extension == 'zip':
-			with ZipFile(destination, 'rb') as f_in:
+			with ZipFile(destination, 'r') as f_in:
 				with open(out_file_path, 'wb') as f_out:
 					shutil.copyfileobj(f_in, f_out)
 			print(f'Finished unzipping the {name} dataset')
