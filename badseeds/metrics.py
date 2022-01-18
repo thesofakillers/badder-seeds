@@ -1,6 +1,7 @@
 """Functionality for metrics used in our work"""
 import numpy as np
 import numpy.typing as npt
+from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
 
 
@@ -74,7 +75,40 @@ def calc_weat(
     return weat_score
 
 
-def calc_pca():
-    """PCA metric as described in Bolukbasi et al. (2016)"""
-    # TODO
-    raise NotImplementedError()
+def do_pca(word_pairs, embedding, num_components = 10):
+    """
+    PCA metric as described in Bolukbasi et al. (2016).
+    original code base of the authors: https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
+
+    Embeddings of bias word pairs are used to calculate the bias subspace.
+    Number of words in each word set N.
+
+    Parameters
+    ----------
+    word_pairs : array-like of strings
+        (10,2) array of strings, 
+    
+    embedding : dictionary of strings mapped to array of floats
+        (N) string mapped to array of floats, maps word to its embedding 
+
+    num_components : int 
+        indicates number of principal components wanted for extraction
+
+    Returns
+    -------
+    pca : matrix of floats
+        (num_components, B) matrix of floats, consitutes principle components of bias direction = bias subspace
+
+    """
+
+    matrix = []
+    for a, b in word_pairs:
+        center = (embedding[a] + embedding[b])/2
+        matrix.append(embedding[a] - center)
+        matrix.append(embedding[b] - center)
+    matrix = np.array(matrix)
+    pca = PCA(n_components = num_components)
+    pca.fit(matrix)
+    # bar(range(num_components), pca.explained_variance_ratio_)
+
+    return pca
