@@ -5,15 +5,16 @@ bootstrap sampling of given dataset
 import pickle
 import numpy as np
 
-def bootstrap(dataset, n = 20):
-    """"
-    makes bootstrap samples from given dataset 
+
+def bootstrap(dataset, n=20):
+    """ "
+    makes bootstrap samples from given dataset
 
     Parametrs
     -----------
     n : int
         number of bootstrap samples
-    
+
     dataset: string
         name of the dataset
 
@@ -22,9 +23,9 @@ def bootstrap(dataset, n = 20):
     bootstrap_samples: list of arrays
         list of arrays (bootstrapped samples)
     """
-    
-    #load in file
-    with open(dataset, 'rb') as f:
+
+    # load in file
+    with open(dataset, "rb") as f:
         x = pickle.load(f)
 
     print(type(x))
@@ -32,10 +33,10 @@ def bootstrap(dataset, n = 20):
     data = np.asarray(x)
     length = len(data)
     for i in range(n):
-        bootstrap_samples.append(np.random.choice(data, replace = True, size = length))
-    
+        bootstrap_samples.append(np.random.choice(data, replace=True, size=length))
+
     return bootstrap_samples
 
 
 if __name__ == "__main__":
-    bootstrap('../data/processed/nytimes_news_articles.pkl')
+    bootstrap("../data/processed/nytimes_news_articles.pkl")

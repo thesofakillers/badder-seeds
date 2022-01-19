@@ -48,7 +48,9 @@ if __name__ == "__main__":
 
     # load google news word2vec
     # Load vectors directly from the file
-    model = KeyedVectors.load_word2vec_format('../data/GoogleNews-vectors-negative300.bin', binary=True)
+    model = KeyedVectors.load_word2vec_format(
+        "../data/GoogleNews-vectors-negative300.bin", binary=True
+    )
 
     # definde seeds
     seed_female = [
