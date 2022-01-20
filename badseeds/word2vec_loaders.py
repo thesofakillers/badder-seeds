@@ -6,10 +6,10 @@ from tqdm import tqdm
 
 
 class DataReader:
-    def __init__(self, data_path: str, min_count: int = 10):
+    def __init__(self, data_path: str, min_count: int = 10) -> None:
         """
         Initializes a DataReader object
-        :param str data_path: path string to data
+        :param str data_path: path string to data, which is list of sentences
         :param int min_count: minimum frequency of words to embed
         """
         self.data_path = data_path
@@ -22,13 +22,14 @@ class DataReader:
         self.vocab_size = 0
 
         # determine number of lines in data and randomly sample
+        # TODO: maybe move the sampling to the Word2Vec part?
         self.num_lines = sum(1 for line in open(self.data_path, "rb"))
         self.sampled = np.random.choice(self.num_lines, size=self.num_lines).sort()
 
         # build frequency list
         self.read_data()
 
-    def read_data(self):
+    def read_data(self) -> None:
         """
         Reads data according to sampled lines and builds frequency dictionary, id to word mappings.
         Filters by word frequency according to minimum count
@@ -40,7 +41,11 @@ class DataReader:
 
         # NOTE: problem with zero length lines, counted as sampled but not actually add to data.
         # do empty lines count in line count of preprocessed?
+
         print("Reading words from " + self.data_path)
+        if not os.path.isfile(self.data_path):
+            print("No file found")
+            return
         with open(self.data_path, "rb") as f:
             for i, line in enumerate(tqdm(f, unit="line")):
                 tokens = line.split()
@@ -58,4 +63,22 @@ class DataReader:
                 self.word_freq[i] = c
         print("Total terms to embed " + str(len(self.word_freq)))
 
-        return
+
+class Word2VecData(torch.utils.data.Dataset):
+    def __init__(
+        self,
+        reader: DataReader,
+        data_path: str,
+        min_count: int,
+        window_size: int,
+        neg_samples: int = 5,
+    ) -> None:
+        super().__init__()
+        self.data = reader
+        self.data_path = data_path
+        self.min_count = min_count
+        self.window_size = window_size
+        self.neg_samples = neg_samples
+
+    def __len__(self) -> int:
+        return self.data.num_lines
