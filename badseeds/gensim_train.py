@@ -11,16 +11,16 @@ def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
     :returns KeyedVectors word_vectors: embeddings for gensim model keyed by word"""
 
     model = gm.Word2Vec(sentences=data, **params)
-    print(model.wv["stupid"])
     return model.wv
 
 
-def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) -> None:
+def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) -> list:
     """Trains word2vec model through bootstrapping n times and saves.
     :param str data_path: path to the data to train on
     :param int n: number of times to bootstrap
     :param str models_dir: directory to model data
     :param dict params: parameters of word2vec model
+    :returns list embeddings: list of embeddings for each bootstrap
     """
 
     samples = bootstrap(data_path, n)
@@ -41,8 +41,7 @@ def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) 
         file_path = os.path.join(save_path, file_name)
         word_vecs[i].save(file_path)
 
-    reloaded_word_vectors = gm.KeyedVectors.load(file_path)
-    print(reloaded_word_vectors["stupid"])
+    return word_vecs
 
 
 if __name__ == "__main__":
@@ -52,6 +51,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # directory to save model in and data file path
+    # NOTE: once we have a working preprocess file that does things we can just loop over all dataset directories
     parser.add_argument(
         "--data_path",
         "-dp",
