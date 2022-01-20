@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 import random
 import numpy as np
 from gensim.models import KeyedVectors
+import copy
 
 import metrics
 
@@ -78,18 +79,31 @@ if __name__ == "__main__":
         "male",
     ]
 
-    # shufffled seeds
-    shuffled_list = seed_female + seed_male
-    random.shuffle((shuffled_list))
-    seed1_shuffled = shuffled_list[:10]
-    seed2_shuffled = shuffled_list[10:]
+    # draw random words from word2vec
+    seed1_rnd = [random.randint(1, 400000) for i in range(10)]
+    seed2_rnd = [random.randint(1, 400000) for i in range(10)]
+
+    # # shufffled seeds (not needed as of my interpretation)
+    # shuffled_list = seed_female + seed_male
+    # random.shuffle((shuffled_list))
+    # seed1_shuffled = shuffled_list[:10]
+    # seed2_shuffled = shuffled_list[10:]
+
+    # shuffled in place
+    seedf_inshuffle = copy.deepcopy(seed_female)
+    (random.shuffle((seedf_inshuffle)))
+    seedm_inshuffle = copy.deepcopy(seed_male)
+    (random.shuffle((seedm_inshuffle)))
 
     # do pca
     pca_ordered = metrics.do_pca(seed_female, seed_male, model)
-    pca_shuffled = metrics.do_pca(seed1_shuffled, seed2_shuffled, model)
+    pca_rnd = metrics.do_pca(seed1_rnd, seed2_rnd, model)
+    pca_inshuffle = metrics.do_pca(seedf_inshuffle, seedm_inshuffle, model)
     variance_ordered = pca_ordered.explained_variance_ratio_
-    variance_shuffled = pca_shuffled.explained_variance_ratio_
+    variance_rnd = pca_rnd.explained_variance_ratio_
+    variance_inshuffle = pca_inshuffle.explained_variance_ratio_
     print(" \n Variance of ordered gender pairs: \n", variance_ordered)
-    print(" \n Variance of shuffled gender pairs: \n", variance_shuffled)
+    print(" \n Variance of random word pairs: \n", variance_rnd)
+    print(" \n Variance of inplace shuffled gender pairs: \n", variance_inshuffle)
     # plt.bar(range(10), pca_ordered.explained_variance_ratio_)
     # plt.show()
