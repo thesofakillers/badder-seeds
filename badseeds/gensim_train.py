@@ -1,5 +1,5 @@
 import gensim.models as gm
-from boostrap_sampling import *
+from bootstrap_sampling import *
 from tqdm import tqdm
 import os
 
@@ -29,18 +29,19 @@ def bootstrap_train(data_path: str, n: int, models_dir: str, params: dict) -> No
     # TODO: save embeddings
 
     # get file dir and set it as working directory
-    print("Saving:")
     fdir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(fdir)
 
-    # extract data file name and make saving location
-    name_file = os.path.splitext(data_path)
-    # TODO
-    save_path = ...
-    for i in range(1, n + 1):
-        file_name = "vectors" + str(i) + ".kv"
-        # TODO: make path
-        word_vecs[i - 1].save(path)
+    # make model dirs
+    name_file = os.path.splitext(data_path)[0]
+    save_path = os.path.join(models_dir, name_file)
+    os.makedirs(save_path, exist_ok=True)
+    print(f"Saving in {save_path}.")
+
+    for i in range(n):
+        file_name = "vectors_sample" + str(i + 1) + ".kv"
+        file_path = os.path.join(save_path, file_name)
+        word_vecs[i].save(file_path)
 
 
 if __name__ == "__main__":
