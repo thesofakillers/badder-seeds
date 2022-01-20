@@ -11,6 +11,7 @@ def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
     :returns KeyedVectors word_vectors: embeddings for gensim model keyed by word"""
 
     model = gm.Word2Vec(sentences=data, **params)
+    print(model.wv["stupid"])
     return model.wv
 
 
@@ -24,10 +25,12 @@ def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) 
 
     samples = bootstrap(data_path, n)
     print("Training word2vec:")
-    word_vecs = [train_word2vec(i, params) for i in tqdm(samples, unit="sample")]
+    word_vecs = [
+        train_word2vec(i, params) for i in tqdm(samples, unit="bootstrap sample")
+    ]
 
     # make model dirs
-    name_file = os.path.splitext(data_path)[0]
+    name_file = os.path.splitext(data_path)[0].split("/")[-1]
     save_path = os.path.join(models_dir, name_file)
     os.makedirs(save_path, exist_ok=True)
     print(f"Saving in {save_path}.")
@@ -37,6 +40,9 @@ def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) 
         file_name = "vectors_sample" + str(i + 1) + ".kv"
         file_path = os.path.join(save_path, file_name)
         word_vecs[i].save(file_path)
+
+    reloaded_word_vectors = gm.KeyedVectors.load(file_path)
+    print(reloaded_word_vectors["stupid"])
 
 
 if __name__ == "__main__":
@@ -72,60 +78,63 @@ if __name__ == "__main__":
     # Gensim hyperparameters
     parser.add_argument(
         "--vector_size",
-        '-vs',
+        "-vs",
         default=100,
         type=int,
         help="Dimensionality of embedding vector. Default is 100.",
     )
     parser.add_argument(
         "--window",
-        '-w'
+        "-w",
         default=5,
         type=int,
         help="Window size. Default is 5.",
     )
     parser.add_argument(
         "--min_count",
-        '-mc'
+        "-mc",
         default=10,
         type=int,
         help="Minimum word count to filter. Default is 10.",
     )
     parser.add_argument(
-        "--negatives",
-        '-n'
+        "--negative",
+        "-neg",
         default=5,
         type=int,
         help="Number of negatives to sample. Default is 5.",
     )
     parser.add_argument(
         "--workers",
-        '-ws'
+        "-ws",
         default=1,
         type=int,
         help="Number of worker threads to train model. Default is 1, because >1 may break reproducibility.",
     )
     parser.add_argument(
         "--seed",
-        '-s'
+        "-s",
         default=42,
         type=int,
         help="Random seed for reproducibility. Default is 42.",
     )
     parser.add_argument(
         "--epochs",
-        '-e'
+        "-e",
         default=5,
         type=int,
         help="Number of epochs to train skipgram. Default is 5.",
     )
 
-
     args = parser.parse_args()
     kwargs = vars(args)
-    print(kwargs)
+    data_path = kwargs.pop("data_path")
+    models_dir = kwargs.pop("models_dir")
+    n = kwargs.pop("n")
 
     # get file dir and set it as working directory
     fdir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(fdir)
-    print(fdir)
+
+    # train word2vec models
+    bootstrap_train(data_path, models_dir, kwargs, n)
