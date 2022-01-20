@@ -71,12 +71,6 @@ if __name__ == "__main__":
     file_id = "1ITZ6FZq4_C2hs7k540ZYiReNTlWGt4nz"
     download_and_unzip(destination, out_file_path, file_id)
 
-    # Download Gnews small dataset
-    destination = "../data/w2v_gnews_small.zip"
-    out_file_path = "../data/w2v_gnews_small.txt"
-    file_id = "1NH6jcrg8SXbnhpIXRIXF_-KUE7wGxGaG"
-    download_and_unzip(destination, out_file_path, file_id)
-
     # Create folder for seed data
     if not os.path.isdir("../data/seeds"):
         os.makedirs("../data/seeds")
