@@ -5,6 +5,7 @@ import torch.utils.data as data
 from tqdm import tqdm
 
 
+# TODO: preprocessed data is list of sentences!!!
 class DataReader:
     def __init__(self, data_path: str, min_count: int = 10) -> None:
         """
@@ -46,6 +47,7 @@ class DataReader:
         if not os.path.isfile(self.data_path):
             print("No file found")
             return
+
         with open(self.data_path, "rb") as f:
             for i, line in enumerate(tqdm(f, unit="line")):
                 tokens = line.split()
