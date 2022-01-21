@@ -2,6 +2,7 @@ import gensim.models as gm
 from bootstrap_sampling import *
 from tqdm import tqdm
 import os
+import numpy as np
 
 
 def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
@@ -24,16 +25,27 @@ def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) 
     """
 
     samples = bootstrap(data_path, n)
-    print("Training word2vec:")
-    word_vecs = [
-        train_word2vec(i, params) for i in tqdm(samples, unit="bootstrap sample")
+    print("Building gensim input:")
+    text_samples = [
+        [[token.text for token in doc] for doc in s]
+        for s in tqdm(samples, unit="bootstrap sample")
     ]
+    print("\nTraining word2vec:")
+    word_vecs = [
+        train_word2vec(i, params) for i in tqdm(text_samples, unit="bootstrap sample")
+    ]
+    for i in range(n):
+        result = word_vecs[i].most_similar(positive=["woman", "king"], negative=["man"])
+        most_similar_key, similarity = result[0]  # look at the first match
+        print(
+            f"man is to king like woman is to {most_similar_key} (with similarity {similarity:.4f})"
+        )
 
     # make model dirs
     name_file = os.path.splitext(data_path)[0].split("/")[-1]
     save_path = os.path.join(models_dir, name_file)
     os.makedirs(save_path, exist_ok=True)
-    print(f"Saving in {save_path}.")
+    print(f"\nSaving in {save_path}.")
 
     # save embeddings
     # do not save if already exists
@@ -61,7 +73,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_path",
         "-dp",
-        default="../data/processed/nytimes_news_articles.pkl",
+        default="../data/nytimes_news_articles_preprocessed.pkl",
         type=str,
         help="Path to directory to processed data file. If relative path, relative to badseeds directory. Default is NYT.",
     )
