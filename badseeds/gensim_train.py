@@ -154,5 +154,8 @@ if __name__ == "__main__":
     fdir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(fdir)
 
+    # set numpy seed for bootstrap sample reproducibility
+    np.random.seed(kwargs["seed"])
+
     # train word2vec models
     bootstrap_train(data_path, models_dir, kwargs, n)
