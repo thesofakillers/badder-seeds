@@ -9,9 +9,9 @@ from sklearn import datasets
 
 
 def clean(categories):
-    """ 
+    """
     cleans seed .json file, sorts by category
-    
+
     Parametrs
     -----------
     categories : pandas DatatFrame
@@ -35,7 +35,7 @@ def clean(categories):
 
 
 def seedbank(dataset):
-    """ 
+    """
     loads .json as pandas DataFrame
 
     Parametrs
@@ -46,7 +46,7 @@ def seedbank(dataset):
     Returns
     --------
     seeds: Pandas DatatFrame
-        ordered by category, DataFrame with seeds and meta information    
+        ordered by category, DataFrame with seeds and meta information
     """
     seeds = pd.read_json(dataset)
     seeds["Category"] = seeds["Category"].apply(clean)
