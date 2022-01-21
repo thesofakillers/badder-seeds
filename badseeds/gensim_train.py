@@ -36,10 +36,16 @@ def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) 
     print(f"Saving in {save_path}.")
 
     # save embeddings
+    # do not save if already exists
     for i in range(n):
         file_name = "vectors_sample" + str(i + 1) + ".kv"
         file_path = os.path.join(save_path, file_name)
-        word_vecs[i].save(file_path)
+        if os.path.exists(file_path):
+            print(
+                f"{file_path} already exists, skipping. Delete this file to save re-trained vectors."
+            )
+        else:
+            word_vecs[i].save(file_path)
 
     return word_vecs
 
