@@ -34,12 +34,6 @@ def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) 
     word_vecs = [
         train_word2vec(i, params) for i in tqdm(text_samples, unit="bootstrap sample")
     ]
-    for i in range(n):
-        result = word_vecs[i].most_similar(positive=["woman", "king"], negative=["man"])
-        most_similar_key, similarity = result[0]  # look at the first match
-        print(
-            f"man is to king like woman is to {most_similar_key} (with similarity {similarity:.4f})"
-        )
 
     # make model dirs
     name_file = os.path.splitext(data_path)[0].split("/")[-1]
@@ -73,16 +67,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_path",
         "-dp",
-        default="../data/nytimes_news_articles_preprocessed.pkl",
+        default="data/nytimes_news_articles_preprocessed.pkl",
         type=str,
-        help="Path to directory to processed data file. If relative path, relative to badseeds directory. Default is NYT.",
+        help="Path to directory to processed data file. If relative path, relative to root directory. Default is NYT.",
     )
     parser.add_argument(
         "--models_dir",
         "-md",
-        default="../models/",
+        default="models/",
         type=str,
-        help="Path to directory to save models in. If relative path, relative to badseeds directory. Default is ../models/.",
+        help="Path to directory to save models in. If relative path, relative to root directory. Default is models/.",
     )
 
     # number of bootstrap samples
@@ -150,8 +144,8 @@ if __name__ == "__main__":
     models_dir = kwargs.pop("models_dir")
     n = kwargs.pop("n")
 
-    # get file dir and set it as working directory
-    fdir = os.path.dirname(os.path.abspath(__file__))
+    # get root dir and set it as working directory
+    fdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(fdir)
 
     # set numpy seed for bootstrap sample reproducibility
