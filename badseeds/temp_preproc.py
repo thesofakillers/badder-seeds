@@ -60,7 +60,7 @@ def preprocess_goodreads_romance(path_to_file, path_to_pickle):
         document = nlp(document)
         documents.append(document)
 
-        if index != 0 and index % 100000 == 0:
+        if index != 0 and index % 30000 == 0:
             path_to_pickle = '../data/processed/romance/' + name + '.pkl' f'_{index}.pkl'
             with open(path_to_file, 'wb') as f:
                 pickle.dump(documents, f)
