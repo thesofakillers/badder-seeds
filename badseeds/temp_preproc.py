@@ -2,6 +2,8 @@ import argparse
 from tqdm import tqdm
 import spacy
 import pickle
+import os
+import json
 
 # tokenizer and tagger
 nlp = spacy.load(
@@ -9,7 +11,7 @@ nlp = spacy.load(
 )
 
 
-def preprocess_nyt(raw_data_path):
+def preprocess_nyt(path_to_file, path_to_pickle):
     """
     Tokenise, lowercase and POS tag NYT data, document-wise
     returns list of Spacy Docs
@@ -22,12 +24,12 @@ def preprocess_nyt(raw_data_path):
     """
     documents = []
     document = []
-    with open(raw_data_path, "r") as f:
+    with open(path_to_file, "r") as f:
         lines = f.readlines()
-    for i, line in enumerate(tqdm(lines)):
+    for index, line in enumerate(tqdm(lines)):
         if len(line) > 0 and line[:3] != "URL":
             document.append(line)
-        if line[:3] == "URL" or i == (len(lines) - 1):
+        if line[:3] == "URL" or index == (len(lines) - 1):
             if len(document) > 0:
                 # get rid of linebreaks, lowercase
                 document = " ".join(document).lower().replace("\n", "")
@@ -40,36 +42,42 @@ def preprocess_nyt(raw_data_path):
         else:
             continue
 
-    return documents
+    # save to pickle, its a very thicc file though, 4.5 GB, maybe not good
+    print("Done, saving to pickle")
+    with open(path_to_pickle, "wb") as f:
+        pickle.dump(documents, f)
+
+def preprocess_goodreads_romance(path_to_file, path_to_pickle):
+    if not os.path.isdir("../data/processed/romance"):
+        os.makedirs('../data/processed/romance')
+    documents = []
+    with open(path_to_file, 'r') as f:
+        lines = f.readlines()
+    for index, line in enumerate(tqdm(lines)):
+        data = json.loads(line)
+        document = data["review_text"]
+        document = document.lower().replace("\n", "")
+        document = nlp(document)
+        documents.append(document)
+
+        if index != 0 and index % 100000 == 0:
+            path_to_pickle = '../data/processed/romance/' + name + '.pkl' f'_{index}.pkl'
+            with open(path_to_file, 'wb') as f:
+                pickle.dump(documents, f)
+            documents = []
+
+def create_documents(function, name):
+    path_to_file = "../data/" + name
+    name = name.split('.')[0]
+    path_to_pickle = '../data/processed/' + name + '.pkl'
+
+    if not os.path.isfile(path_to_pickle):
+        print(f"Processing {name}")
+        function(path_to_file, path_to_pickle)
+    else:
+        print(f"Skipping... File {name} already exists")
 
 
 if __name__ == "__main__":
-    # i quickly drafted this for demo reasons, you may want to change it so
-    # that it only runs if it hasnt been run already
-    # that being said you only need to run this once, since it pickles it
-
-    # takes about 5 minutes to run on my 2017 macbook pro
-    parser = argparse.ArgumentParser(description="Preprocess NYT data")
-
-    parser.add_argument(
-        "-i",
-        "--input",
-        type=str,
-        help="path to raw data",
-        default="data/nytimes_news_articles.txt",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        help="path to output file",
-        default="data/nytimes_news_articles_preprocessed.pkl",
-    )
-
-    args = parser.parse_args()
-    nyt_articles = preprocess_nyt(args.input)
-
-    # save to pickle, its a very thicc file though, 4.5 GB, maybe not good
-    print("done, saving to pickle")
-    with open(args.output, "wb") as f:
-        pickle.dump(nyt_articles, f)
+    create_documents(preprocess_nyt, "nytimes_news_articles.txt")
+    create_documents(preprocess_goodreads_romance, "goodreads_reviews_romance.json")
