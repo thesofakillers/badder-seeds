@@ -8,14 +8,16 @@ import numpy as np
 def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
     """Trains word2vec gensim model on fed sentence data
     :param list data: list of sentences to feed gensim model
-    :param dict **params: parameters of the gensim function
+    :param dict params: parameters of the gensim function
     :returns KeyedVectors word_vectors: embeddings for gensim model keyed by word"""
 
     model = gm.Word2Vec(sentences=data, **params)
     return model.wv
 
 
-def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) -> list:
+def bootstrap_train(
+    data_path: str, models_dir: str, params: dict, n: int = 20
+) -> list[gm.keyedvectors.KeyedVectors]:
     """Trains word2vec model through bootstrapping n times and saves.
     :param str data_path: path to the data to train on
     :param int n: number of times to bootstrap
