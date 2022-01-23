@@ -3,6 +3,7 @@ import numpy as np
 import numpy.typing as npt
 from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
+import gensim.models as gm
 
 
 def comp_assoc(
@@ -114,3 +115,32 @@ def do_pca(seed1, seed2, embedding, num_components=10):
     pca.fit(matrix)
 
     return pca
+
+
+def coherence(
+    embeddings: gm.KeyedVectors,
+    set1: list[str],
+    set2: list[str],
+    mode: str = "weat",
+    **kwargs
+) -> float:
+
+    # obtain bias subspace vector according to mode
+    if mode == "weat":
+        i = 0
+        vset1 = [embeddings[w] for w in set1]
+        vset2 = [embeddings[w] for w in set2]
+        mean1, mean2 = np.mean(vset1, axis=0), np.mean(vset2, axis=0)
+        bsubspace_v = mean1 - mean2
+    elif mode == "pca":
+        matrix = do_pca(set1, set2, embeddings)
+
+    else:
+        print("subspace mode type not yet implemented")
+
+    # rank all words in vocab by cosine similarity to bias subspace
+
+    # calculate mean rank of paired seed sets
+
+    # calculate absolute difference in mean rank
+    pass
