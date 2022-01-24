@@ -137,7 +137,9 @@ def preprocess_wiki():
     else:
         with open(path_to_file, "r") as f:
             lines = f.readlines()
-
+        # remove lines with formulas
+        lines = [line for line in lines if line != " <formula> \n"]
+        # determine document start indexes using combination of regex patterns
         title_regex = re.compile(" = .* = \n")
         subtitle_regex = re.compile(" = = .* = = \n")
         new_line_regex = re.compile(" \n")
@@ -154,7 +156,11 @@ def preprocess_wiki():
         ] + [len(lines) - 1]
 
         documents = [
-            "".join(lines[start_idx:end_idx]).replace("\n", "").strip().lower()
+            "".join(lines[start_idx:end_idx])
+            .replace("\n", "")
+            .replace("<formula>", "")
+            .strip()
+            .lower()
             for start_idx, end_idx in zip(doc_idxs, doc_idxs[1:])
         ]
 
