@@ -15,6 +15,23 @@ nlp = spacy.load(
 )
 
 
+def read_file(path):
+    doc_list = []
+    if os.path.isdir(path):
+        print("Directory detected, reading and concatenating all containing files")
+        for file in tqdm(os.listdir(path)):
+            with open(os.path.join(path, file), "rb") as f:
+                bytes_data = f.read()
+            doc_bin = DocBin().from_bytes(bytes_data)
+            doc_list.extend(list(doc_bin.get_docs(nlp.vocab)))
+    else:
+        with open(path, "rb") as f:
+            bytes_data = f.read()
+        doc_bin = DocBin().from_bytes(bytes_data)
+        doc_list = list(doc_bin.get_docs(nlp.vocab))
+    return doc_list
+
+
 def save_file(documents, path):
     doc_bin = DocBin(attrs=["TAG"])
 
@@ -171,8 +188,30 @@ def preprocess_wiki():
         save_file(documents, save_path)
 
 
-if __name__ == "__main__":
+def preprocess_datasets():
     preprocess_nyt()
     preprocess_wiki()
     preprocess_goodreads("romance")
     preprocess_goodreads("history_biography")
+
+
+def read_preprocessed_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
+    pproc_datasets = {
+        "NYT": [],
+        "WikiText": [],
+        "Goodreads (Romance)": [],
+        "Goodreads (History/Biography)": [],
+    }
+    print("reading nyt")
+    pproc_datasets["NYT"] = read_file(nyt_path)
+    print("reading wikitext")
+    pproc_datasets["WikiText"] = read_file(wiki_path)
+    print("reading goodreads romance")
+    pproc_datasets["Goodreads (Romance)"] = read_file(grr_dir_path)
+    print("reading goodreads history/biography")
+    pproc_datasets["Goodreads (History/Biography)"] = read_file(grhb_dir_path)
+    return pproc_datasets
+
+
+if __name__ == "__main__":
+    preprocess_datasets()
