@@ -4,6 +4,7 @@ import gzip
 import shutil
 import gdown
 from zipfile import ZipFile
+import requests
 
 
 def download_and_unzip(destination, out_file_path, file_id):
@@ -70,8 +71,15 @@ if __name__ == "__main__":
     file_id = "1ITZ6FZq4_C2hs7k540ZYiReNTlWGt4nz"
     download_and_unzip(destination, out_file_path, file_id)
 
-    # Download Gnews small dataset
-    destination = "../data/w2v_gnews_small.zip"
-    out_file_path = "../data/w2v_gnews_small.txt"
-    file_id = "1NH6jcrg8SXbnhpIXRIXF_-KUE7wGxGaG"
-    download_and_unzip(destination, out_file_path, file_id)
+    # Create folder for seed data
+    if not os.path.isdir("../data/seeds"):
+        os.makedirs("../data/seeds")
+        print("Created folder : ", "../data/seeds")
+
+    # download seeds
+    recieve = requests.get(
+        "https://raw.githubusercontent.com/maria-antoniak/bad-seeds/main/gathered_seeds.json"
+    )
+    # r_dictionary= r.json()
+    with open(r"../data/seeds/seeds.json", "wb") as f:
+        f.write(recieve.content)
