@@ -110,11 +110,12 @@ def preprocess_wiki(name, save_path):
     path_to_file = "../data/WikiText103/wikitext-103/" + name
     with open(path_to_file, "r") as f:
         lines = f.readlines()
-
+    # remove lines with formulas
+    lines = [line for line in lines if line != " <formula> \n"]
+    # determine document start indexes using combination of regex patterns
     title_regex = re.compile(" = .* = \n")
     subtitle_regex = re.compile(" = = .* = = \n")
     new_line_regex = re.compile(" \n")
-
     doc_idxs = [
         idx
         for idx, (prev_line, cur_line, next_line) in enumerate(
@@ -125,13 +126,17 @@ def preprocess_wiki(name, save_path):
         and title_regex.match(cur_line)
         and not subtitle_regex.match(cur_line)
     ] + [len(lines) - 1]
-
+    # split/concat lines into docs; lowercase; remove newlines and formulas
     documents = [
-        "".join(lines[start_idx:end_idx]).replace("\n", "").strip().lower()
+        "".join(lines[start_idx:end_idx])
+        .replace("\n", "")
+        .replace("<formula>", "")
+        .strip()
+        .lower()
         for start_idx, end_idx in zip(doc_idxs, doc_idxs[1:])
     ]
 
-    print("Done. Now saving all documents in ", save_path)
+    print("Done. Now tokenizing, tagging and saving all documents in ", save_path)
     save_file(documents, save_path)
 
 
