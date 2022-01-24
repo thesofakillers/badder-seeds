@@ -75,7 +75,7 @@ def preprocess_goodreads(name):
     if os.path.isdir(f"../data/processed/{name}"):
         print(f"Skipping Goodreads {name} because it is already processed")
     else:
-        if name == 'romance':
+        if name == "romance":
             if not os.path.isdir("../data/processed/romance"):
                 os.makedirs("../data/processed/romance")
             path_to_file = "../data/goodreads_reviews_romance.json"
@@ -83,32 +83,32 @@ def preprocess_goodreads(name):
         else:
             if not os.path.isdir("../data/processed/history_biography"):
                 os.makedirs("../data/processed/history_biography")
-            path_to_file = '../data/goodreads_reviews_history_biography.json'
+            path_to_file = "../data/goodreads_reviews_history_biography.json"
             save_path = "../data/processed/history_biography/goodreads_reviews_history_biography"
 
         with open(path_to_file, "r") as f:
             lines = f.readlines()
 
-        #sample 500 reviews per book
+        # sample 500 reviews per book
         print("Removing all reviews with less than 20 chars and creating datastructure")
         first_dict = defaultdict()
         for line in tqdm(lines):
             data = json.loads(line)
-            if len(data['review_text']) > 20:
-                
-                if data['book_id'] not in first_dict:
-                    first_dict[data['book_id']] = []
+            if len(data["review_text"]) > 20:
 
-                first_dict[data['book_id']].append(data['review_id'])
+                if data["book_id"] not in first_dict:
+                    first_dict[data["book_id"]] = []
 
-        #remove books with fewer than 500 reviews
+                first_dict[data["book_id"]].append(data["review_id"])
+
+        # remove books with fewer than 500 reviews
         print("Remove all books with fewer than 500 reviews")
         second_dict = defaultdict()
         for i in tqdm(first_dict):
             if len(first_dict[i]) >= 500:
                 second_dict[i] = first_dict[i]
-        
-        #sample 500 random review ids per book
+
+        # sample 500 random review ids per book
         print("Sampling 500 random reviews per book")
         for book in tqdm(second_dict):
             second_dict[book] = random.sample(second_dict[book], 500)
@@ -117,21 +117,24 @@ def preprocess_goodreads(name):
         documents = []
         for index, line in enumerate(tqdm(lines)):
             data = json.loads(line)
-            if data['book_id'] in second_dict and data['review_id'] in second_dict[data['book_id']]:
+            if (
+                data["book_id"] in second_dict
+                and data["review_id"] in second_dict[data["book_id"]]
+            ):
                 document = data["review_text"]
                 document = document.lower().replace("\n", "")
                 document = nlp(document)
                 documents.append(document)
 
             if index != 0 and index % 500000 == 0 or index == len(lines) - 1:
-                    current_save_path = save_path + f"_{index}.bin"
-                    save_file(documents, current_save_path)
-                    documents = []
+                current_save_path = save_path + f"_{index}.bin"
+                save_file(documents, current_save_path)
+                documents = []
 
 
 def preprocess_wiki():
     path_to_file = "../data/WikiText103/wikitext-103/wiki.train.tokens"
-    save_path = '../data/processed/wiki.train.tokens.bin'
+    save_path = "../data/processed/wiki.train.tokens.bin"
     if os.path.isfile(save_path):
         print("Skipping WikiText103 because it is already processed")
     else:
@@ -167,8 +170,9 @@ def preprocess_wiki():
         print("Done. Now saving all documents in ", save_path)
         save_file(documents, save_path)
 
+
 if __name__ == "__main__":
     preprocess_nyt()
     preprocess_wiki()
-    preprocess_goodreads('romance')
-    preprocess_goodreads('history_biography')
+    preprocess_goodreads("romance")
+    preprocess_goodreads("history_biography")
