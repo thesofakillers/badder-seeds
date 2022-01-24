@@ -4,6 +4,11 @@ import spacy
 import pickle
 import os
 import json
+import multiprocessing
+
+# split a list into evenly sized chunks
+def chunks(l, n):
+    return [l[i:i+n] for i in range(0, len(l), n)]
 
 # tokenizer and tagger
 nlp = spacy.load(
@@ -48,23 +53,37 @@ def preprocess_nyt(path_to_file, path_to_pickle):
         pickle.dump(documents, f)
 
 def preprocess_goodreads_romance(path_to_file, path_to_pickle):
+    def do_job(job_id, data_slice):
+        documents = []
+        for index, line in enumerate(data_slice):
+            data = json.loads(line)
+            document = data["review_text"]
+            document = document.lower().replace("\n", "")
+            document = nlp(document)
+            documents.append(document)
+
+            if index != 0 and index % 15000 == 0 or index == len(data_slice)-1:
+                path_to_pickle = f'../data/processed/romance/goodreads_reviews_romance_{job_id}_{index}.pkl'
+                with open(path_to_pickle, 'wb') as f:
+                    pickle.dump(documents, f)
+                documents = []
+
     if not os.path.isdir("../data/processed/romance"):
         os.makedirs('../data/processed/romance')
-    documents = []
+    
     with open(path_to_file, 'r') as f:
         lines = f.readlines()
-    for index, line in enumerate(tqdm(lines)):
-        data = json.loads(line)
-        document = data["review_text"]
-        document = document.lower().replace("\n", "")
-        document = nlp(document)
-        documents.append(document)
 
-        if index != 0 and index % 30000 == 0:
-            path_to_pickle = '../data/processed/romance/' + name + '.pkl' f'_{index}.pkl'
-            with open(path_to_file, 'wb') as f:
-                pickle.dump(documents, f)
-            documents = []
+    total = len(lines)
+    chunk_size = total // 4
+    slices = chunks(lines, chunk_size)
+    jobs = []
+
+    for i, s in enumerate(slices):
+        j = multiprocessing.Process(target=do_job, args=(i, s))
+        jobs.append(j)
+    for j in jobs:
+        j.start()
 
 def create_documents(function, name):
     path_to_file = "../data/" + name
