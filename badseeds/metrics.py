@@ -106,9 +106,14 @@ def do_pca(seed1, seed2, embedding, num_components=10):
 
     matrix = []
     for a, b in zip(seed1, seed2):
-        center = (embedding[a] + embedding[b]) / 2
-        matrix.append(embedding[a] - center)
-        matrix.append(embedding[b] - center)
+        try:
+            center = (embedding[a] + embedding[b]) / 2
+            matrix.append(embedding[a] - center)
+            matrix.append(embedding[b] - center)
+        except KeyError as ke:
+            print(ke)
+            pass
+
     matrix = np.array(matrix)
     pca = PCA(n_components=num_components)
     pca.fit(matrix)
