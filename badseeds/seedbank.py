@@ -34,7 +34,32 @@ def clean(categories):
     return x
 
 
-def seedbank(dataset):
+def get_seeds(seeds, seed_list):
+    """
+    returns seed by seed id
+
+    Parametrs
+    -----------
+    seed_list : list of strings
+        list of seed IDs
+
+    Returns
+    --------
+    extracted_seeds: list of lists
+        list of seeds
+
+    """
+
+    extracted_seeds = []
+
+    for seed in seed_list:
+        seed1 = seeds.loc[[seed], ["Seeds"]]
+        extracted_seeds.append(pd.eval(seed1.values[0])[0])
+
+    return extracted_seeds
+
+
+def seedbanking(dataset):
     """
     loads .json as pandas DataFrame
 
@@ -56,7 +81,7 @@ def seedbank(dataset):
 
 
 if __name__ == "__main__":
-    seeds = seedbank("../data/seeds/seeds.json")
+    seeds = seedbanking("../data/seeds/seeds.json")
     with pd.option_context(
         "display.max_rows",
         None,
