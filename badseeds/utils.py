@@ -99,12 +99,12 @@ def catch_keyerror(models, word):
 
     Parametrs
     -----------
-    
+
     models: list of KeyedVector
         list of skipgram models
-    word: string 
+    word: string
         word that we want to get the embedding from
-    
+
     """
     try:
         return (models[0])[word]
