@@ -3,6 +3,7 @@ from bootstrap_sampling import *
 from tqdm import tqdm
 import os
 import numpy as np
+from metrics import *
 
 
 def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
@@ -21,7 +22,7 @@ def bootstrap_train(
     """Trains word2vec model through bootstrapping n times and saves.
     :param str data_path: path to the data to train on
     :param int n: number of times to bootstrap
-    :param str models_dir: directory to model data
+    :param str models_dir: directory to save model data
     :param dict params: parameters of word2vec model
     :returns list embeddings: list of embeddings for each bootstrap
     """
@@ -38,7 +39,11 @@ def bootstrap_train(
     ]
 
     # make model dirs
-    name_file = os.path.splitext(data_path)[0].split("/")[-1]
+    name_file = (
+        os.path.splitext(data_path)[0].split("/")[-1]
+        + "_min"
+        + str(params["min_count"])
+    )
     save_path = os.path.join(models_dir, name_file)
     os.makedirs(save_path, exist_ok=True)
     print(f"\nSaving in {save_path}.")
@@ -155,3 +160,11 @@ if __name__ == "__main__":
 
     # train word2vec models
     bootstrap_train(data_path, models_dir, kwargs, n)
+
+    # embeds = gm.KeyedVectors.load(
+    #     "models/nytimes_news_articles_preprocessed/vectors_sample1.kv"
+    # )
+    # seed1 = ["good"]
+    # seed2 = ["bad"]
+
+    # print(coherence(embeds, seed1, seed2))
