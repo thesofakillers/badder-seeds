@@ -17,6 +17,7 @@ import seedbank
 
 random.seed(42)
 
+
 def read_wordembedding(fname):
     """
     reads wordembeddings in .txt format and turns it into a dictionary
