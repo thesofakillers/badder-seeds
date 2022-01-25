@@ -17,60 +17,58 @@ def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
 
 
 def bootstrap_train(
-    data_path: str, models_dir: str, params: dict, n: int = 20
-) -> list[gm.keyedvectors.KeyedVectors]:
+    data_path: str, models_dir: str, params: dict, seed: int = 42, n: int = 20
+) -> None:
     """Trains word2vec model through bootstrapping n times and saves.
     :param str data_path: path to the data to train on
-    :param int n: number of times to bootstrap
+    :param int n: number of times to bootstrap. Default is 20.
     :param str models_dir: directory to save model data
     :param dict params: parameters of word2vec model
-    :returns list embeddings: list of embeddings for each bootstrap, has attribute pos which lists all pos tags of the word.
-        Can get list of all the word's POS tags with gensim's get_vecattr method.
+    :param int seed: seed for random number generator. Default is 42
+    :returns None
     """
 
+    # set numpy seed for bootstrap sample reproducibility
+    np.random.seed(seed)
+
+    # make model dirs
+    if os.path.isdir(data_path):
+        name_file = data_path.split("/")[-1] + "_min" + str(params["min_count"])
+    else:
+        name_file = (
+            os.path.splitext(data_path)[0].split("/")[-1]
+            + "_min"
+            + str(params["min_count"])
+        )
+    save_path = os.path.join(models_dir, name_file)
+    os.makedirs(save_path, exist_ok=True)
+
     samples = bootstrap(data_path, n)
-    print("Building pos dict:")
-    vocab_pos_samples = []
-    for s in tqdm(samples, unit="bootstrap sample"):
+    for i, s in enumerate(samples):
+        print(f"Sample {i + 1}, building dataset:")
         pos_vocab = {}
-        for doc in s:
+        sample_text = []
+        for doc in tqdm(s, unit="documents"):
+            doc_text = []
             for token in doc:
+                doc_text.append(token.text)
                 if token.text in pos_vocab.keys():
                     if not token.tag_ in pos_vocab[token.text]:
                         pos_vocab[token.text].append(token.tag_)
                 else:
                     pos_vocab[token.text] = [token.tag_]
-        vocab_pos_samples.append(pos_vocab)
+            sample_text.append(doc_text)
 
-    print("Building gensim input:")
-    text_samples = [
-        [[token.text for token in doc] for doc in s]
-        for s in tqdm(samples, unit="bootstrap sample")
-    ]
-    print("\nTraining word2vec:")
-    word_vecs = [
-        train_word2vec(i, params) for i in tqdm(text_samples, unit="bootstrap sample")
-    ]
+        print("\nTraining word2vec...")
+        model = train_word2vec(sample_text, params)
 
-    print("\nAttaching pos tags to word vectors:")
-    for i, model in enumerate(word_vecs):
-        for word, tag in vocab_pos_samples[i].items():
+        print("\nAttaching pos tags to word vectors:")
+        for word, tag in tqdm(pos_vocab.items(), unit="vectors"):
             if word in model.key_to_index:
                 model.set_vecattr(word, "pos", tag)
 
-    # make model dirs
-    name_file = (
-        os.path.splitext(data_path)[0].split("/")[-1]
-        + "_min"
-        + str(params["min_count"])
-    )
-    save_path = os.path.join(models_dir, name_file)
-    os.makedirs(save_path, exist_ok=True)
-    print(f"\nSaving in {save_path}.")
-
-    # save embeddings
-    # do not save if already exists
-    for i in range(n):
+        # save embeddings
+        # do not save if already exists
         file_name = "vectors_sample" + str(i + 1) + ".kv"
         file_path = os.path.join(save_path, file_name)
         if os.path.exists(file_path):
@@ -78,9 +76,13 @@ def bootstrap_train(
                 f"{file_path} already exists, skipping. Delete this file to save re-trained vectors."
             )
         else:
-            word_vecs[i].save(file_path)
+            model.save(file_path)
+        print(f"\nSaved in {save_path}.")
+        del model
+        del sample_text
+        del pos_vocab
 
-    return word_vecs
+    return
 
 
 if __name__ == "__main__":
@@ -162,13 +164,19 @@ if __name__ == "__main__":
     kwargs = vars(args)
     models_dir = kwargs.pop("models_dir")
     n = kwargs.pop("n")
+    seed = kwargs.pop("seed")
 
     # get root dir and set it as working directory
     fdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(fdir)
 
-    # set numpy seed for bootstrap sample reproducibility
-    np.random.seed(kwargs["seed"])
-
     # train word2vec models
-    # bootstrap_train("data/processed/nytimes_news_articles.bin", models_dir, kwargs, n)
+    # bootstrap_train(
+    #     "data/processed/nytimes_news_articles.bin", models_dir, kwargs, seed, n
+    # )
+    # bootstrap_train("data/processed/wiki.train.tokens.bin", models_dir, kwargs, seed, n)
+    # bootstrap_train("data/processed/history_biography", models_dir, kwargs, seed, n)
+    # bootstrap_train("data/processed/romance", models_dir, kwargs, seed, n)
+    bootstrap_train(
+        "data/processed/nytimes_news_articles.bin", models_dir, kwargs, seed, n
+    )
