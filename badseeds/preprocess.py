@@ -71,6 +71,8 @@ def spacy_and_save(documents, path):
 def preprocess_nyt(
     path_to_file="../data/nytimes_news_articles.txt",
     save_path="../data/processed/nytimes_news_articles.bin",
+    serialize=True,
+    return_memory=False,
 ):
     """
     Preprocesses the NYT dataset
@@ -79,6 +81,8 @@ def preprocess_nyt(
 
     if os.path.isfile(save_path):
         print("Skipping NYT because it is already processed")
+        if return_memory:
+            return read_pproc_dataset(save_path)
     else:
         documents = []
         document = []
@@ -97,10 +101,13 @@ def preprocess_nyt(
                     document = []
             else:
                 continue
-        print(
-            "Preliminary preprocessing complete; continuing with spacy and serialization"
-        )
-        spacy_and_save(documents, save_path)
+        print("Preliminary preprocessing complete; continuing with spacy")
+        bytes_data = run_spacy_pipe(documents)
+        if serialize:
+            with open(save_path, "wb") as f:
+                f.write(bytes_data)
+        if return_memory:
+            return byte_data_to_doc_list(bytes_data)
 
 
 def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/processed/"):
@@ -172,7 +179,10 @@ def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/process
 def preprocess_wiki(
     path_to_file="../data/WikiText103/wikitext-103/wiki.train.tokens",
     save_path="../data/processed/wiki.train.tokens.bin",
+    serialize=True,
+    return_memory=False,
 ):
+    """Preprocesses the WikiText dataset"""
     if os.path.isfile(save_path):
         print("Skipping WikiText103 because it is already processed")
     else:
@@ -205,8 +215,13 @@ def preprocess_wiki(
             for start_idx, end_idx in zip(doc_idxs, doc_idxs[1:])
         ]
 
-        print("Done. Now saving all documents in ", save_path)
-        spacy_and_save(documents, save_path)
+        print("Preliminary preprocessing complete; continuing with spacy")
+        bytes_data = run_spacy_pipe(documents)
+        if serialize:
+            with open(save_path, "wb") as f:
+                f.write(bytes_data)
+        if return_memory:
+            return byte_data_to_doc_list(bytes_data)
 
 
 def preprocess_datasets():
