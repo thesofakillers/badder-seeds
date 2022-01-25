@@ -1,5 +1,5 @@
 import gensim.models as gm
-from bootstrap_sampling import *
+from utils import *
 from tqdm import tqdm
 import os
 import numpy as np
@@ -171,9 +171,4 @@ if __name__ == "__main__":
     np.random.seed(kwargs["seed"])
 
     # train word2vec models
-    bootstrap_train("data/processed/nytimes_news_articles.bin", models_dir, kwargs, n)
-
-    embeds = gm.KeyedVectors.load(
-        "models/nytimes_news_articles_min10/vectors_sample1.kv"
-    )
-    print(embeds.get_vecattr("good", "pos"))
+    # bootstrap_train("data/processed/nytimes_news_articles.bin", models_dir, kwargs, n)
