@@ -7,25 +7,18 @@ basically extract 1st PC and compute cosine similarity between it and listed wor
 """
 
 from matplotlib import pyplot as plt
-import random
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 import copy
 import os
+import random
+from sklearn.metrics.pairwise import cosine_similarity
 
 import metrics
 import seedbank
 import replicate_bolukbasi
-from sklearn.metrics.pairwise import cosine_similarity
-
-
-def util_except(models, word):
-
-    try:
-        return (models[0])[word]
-    except KeyError:
-        pass
+from utils import catch_keyerror
 
 
 def figure_4(variance_ordered, variance_rnd, variance_inshuffle, sim_list):
@@ -35,7 +28,6 @@ def figure_4(variance_ordered, variance_rnd, variance_inshuffle, sim_list):
     pc_rnd = np.mean(variance_rnd, axis=1)[0]
     pc_inshuffle = np.mean(variance_inshuffle, axis=1)[0]
 
-    print(pc_inshuffle.shape)
     similarity = []
 
     for idx, (pc, word_list) in enumerate(
@@ -138,7 +130,7 @@ if __name__ == "__main__":
         "himself",
         "his",
     ]
-    embed_a = [util_except(models, word) for word in list_a]
+    embed_a = [catch_keyerror(models, word) for word in list_a]
 
     list_b = [
         "likelihood",
@@ -152,7 +144,7 @@ if __name__ == "__main__":
         "danced",
     ]
 
-    embed_b = [util_except(models, word) for word in list_b]
+    embed_b = [catch_keyerror(models, word) for word in list_b]
 
     list_c = [
         "outcomes",
@@ -167,7 +159,7 @@ if __name__ == "__main__":
         "md",
     ]
 
-    embed_c = [util_except(models, word) for word in list_c]
+    embed_c = [catch_keyerror(models, word) for word in list_c]
 
     sim = figure_4(
         variance_ordered, variance_rnd, variance_inshuffle, [embed_a, embed_b, embed_c]

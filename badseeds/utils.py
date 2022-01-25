@@ -91,3 +91,22 @@ def generate_seed_set(
 
     # return seed list
     return first + neighbors
+
+
+def catch_keyerror(models, word):
+    """
+    gets word from first model, but doesnt throw an error when no key found
+
+    Parametrs
+    -----------
+    
+    models: list of KeyedVector
+        list of skipgram models
+    word: string 
+        word that we want to get the embedding from
+    
+    """
+    try:
+        return (models[0])[word]
+    except KeyError:
+        pass
