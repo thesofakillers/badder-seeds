@@ -121,17 +121,16 @@ def do_pca(seed1, seed2, embedding, num_components=10):
     pca.fit(matrix)
 
     return pca
-<<<<<<< HEAD
 
 
-def coherence(
+def get_subspace_vec(
     embeddings,
     set1: list[str],
     set2: list[str],
     mode: str = "weat",
-) -> float:
+) -> npt.NDArray[np.float_]:
     """
-    Compute coherence metric between two seed sets.
+    Compute bias subspace vector between two seed sets according to defined mode.
 
     Parameters
     ----------
@@ -143,61 +142,79 @@ def coherence(
         seed set 2, N seed words
     mode : string
         Mode to use to extract bias subspace vector. Options are 'weat' and 'pca'. Default is 'weat'.
+        With 'weat', bias subspace is difference of average vectors of seed sets
+        With 'pca', bias subspace is first principal component of PCA of seed sets
 
     Returns
     -------
-    float
-        Calculated coherence metric.
+    array-like of floats
+        Computed bias subspace vector.
     """
 
     # obtain bias subspace vector according to mode
     if mode == "weat":
         # bias subspace is just difference of average vector of seed set (see Caliskan 2017)
-        i = 0
-        vset1 = [embeddings[w] for w in set1]
-        vset2 = [embeddings[w] for w in set2]
-        mean1, mean2 = np.mean(vset1, axis=0), np.mean(vset2, axis=0)
-        bias_subspace_v = mean1 - mean2
+        try:
+            vset1 = [embeddings[w] for w in set1]
+            vset2 = [embeddings[w] for w in set2]
+            mean1, mean2 = np.mean(vset1, axis=0), np.mean(vset2, axis=0)
+            bias_subspace_v = (mean1 - mean2).reshape(1, -1)
+        except KeyError:
+            print("KeyError")
     elif mode == "pca":
         # bias subspace is first principal component of PCA
         pca_matrix = do_pca(set1, set2, embeddings, num_components=1)
-        bias_subspace_v = pca_matrix.components_[0, :]
+        bias_subspace_v = pca_matrix.components_[0, :].reshape(1, -1)
     else:
         print("subspace mode type not yet implemented")
+
+    return bias_subspace_v
+
+
+def rank_by_cos_sim(
+    embeddings, bias_subspace_v: npt.NDArray[np.float_], order: str = "descending"
+):
+    """
+    Rank embeddings by similarity to bias subspace vector. Default is decreasing order.
+
+    Parameters
+    ----------
+    embeddings : dictionary of strings mapped to array of floats or gensim KeyedVectors struct.
+        word embedding vectors keyed by word.
+    bias_subspace_v : array-like of floats
+        vector describing resulting bias subspace.
+    order : string
+        Ordering of ranking. Options are 'descending' and 'ascending'. Default is 'descending'.
+
+    Returns
+    -------
+    cos_sim_rank: array-like of ints
+        Argsort indeces that would sort the embeddings by similarity to bias subspace vector.
+    idx2w: list of strings
+        List of words in vocab, indexed by idx, used to fetch word.
+    """
 
     # rank all words in vocab by cosine similarity to bias subspace
     # make matrix of vectors while keeping track of index of word
     if type(embeddings) == gm.KeyedVectors:
-        matrix = np.zeros((len(embeddings.index_to_key), len(embeddings.vector_size)))
+        matrix = np.zeros((len(embeddings.index_to_key), embeddings.vector_size))
         for i, w in enumerate(embeddings.index_to_key):
             matrix[i, :] = embeddings[w]
+        idx2w = embeddings.index_to_key
     else:
-        matrix = np.zeros((len(embeddings), len(list(embeddings.values())[0]))))
+        matrix = np.zeros((len(embeddings), len(list(embeddings.values())[0])))
         idx2w = []
         for i, w in enumerate(embeddings.keys()):
             matrix[i, :] = embeddings[w]
             idx2w.append(w)
 
     # calculate cosine similarity between bias subspace and all words
-    cos_sim = cosine_similarity(matrix, bias_subspace_v)
+    cos_sim = cosine_similarity(matrix, bias_subspace_v).flatten()
 
     # argsort gets us a ranking of words by cosine similarity to bias subspace
-    cos_sim_rank = np.argsort(cos_sim, axis=0)
+    cos_sim_rank = np.argsort(cos_sim, axis=0)[::-1]
 
-    # calculate mean rank of seed sets
-    cumulative_rank1, cumulative_rank2 = 0
-    for rank, idx in enumerate(cos_sim_rank):
-        if idx2w[idx] in set1:
-            cumulative_rank1 += rank
-        if idx2w[idx] in set2:
-            cumulative_rank2 += rank
-    cumulative_rank1 /= len(set1)
-    cumulative_rank2 /= len(set2)
-
-    # calculate absolute difference in mean rank
-    return np.abs(cumulative_rank1 - cumulative_rank2)
-||||||| 38b4166
-=======
+    return cos_sim_rank, idx2w
 
 
 def coherence(
@@ -226,40 +243,8 @@ def coherence(
         Calculated coherence metric.
     """
 
-    # obtain bias subspace vector according to mode
-    if mode == "weat":
-        # bias subspace is just difference of average vector of seed set (see Caliskan 2017)
-        i = 0
-        vset1 = [embeddings[w] for w in set1]
-        vset2 = [embeddings[w] for w in set2]
-        mean1, mean2 = np.mean(vset1, axis=0), np.mean(vset2, axis=0)
-        bias_subspace_v = (mean1 - mean2).reshape(1, -1)
-    elif mode == "pca":
-        # bias subspace is first principal component of PCA
-        pca_matrix = do_pca(set1, set2, embeddings, num_components=1)
-        bias_subspace_v = pca_matrix.components_[0, :].reshape(1, -1)
-    else:
-        print("subspace mode type not yet implemented")
-
-    # rank all words in vocab by cosine similarity to bias subspace
-    # make matrix of vectors while keeping track of index of word
-    if type(embeddings) == gm.KeyedVectors:
-        matrix = np.zeros((len(embeddings.index_to_key), embeddings.vector_size))
-        for i, w in enumerate(embeddings.index_to_key):
-            matrix[i, :] = embeddings[w]
-        idx2w = embeddings.index_to_key
-    else:
-        matrix = np.zeros((len(embeddings), len(list(embeddings.values())[0])))
-        idx2w = []
-        for i, w in enumerate(embeddings.keys()):
-            matrix[i, :] = embeddings[w]
-            idx2w.append(w)
-
-    # calculate cosine similarity between bias subspace and all words
-    cos_sim = cosine_similarity(matrix, bias_subspace_v).flatten()
-
-    # argsort gets us a ranking of words by cosine similarity to bias subspace
-    cos_sim_rank = np.argsort(cos_sim, axis=0)[::-1]
+    bias_subspace_v = get_subspace_vec(embeddings, set1, set2, mode)
+    cos_sim_rank, idx2w = rank_by_cos_sim(embeddings, bias_subspace_v)
 
     # calculate mean rank of seed sets
     cumulative_rank1, cumulative_rank2 = 0, 0
@@ -273,4 +258,3 @@ def coherence(
 
     # calculate absolute difference in mean rank
     return np.abs(cumulative_rank1 - cumulative_rank2)
->>>>>>> main
