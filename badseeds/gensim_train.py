@@ -59,11 +59,14 @@ def bootstrap_train(
                 model.set_vecattr(word, "pos", tag)
 
     # make model dirs
-    name_file = (
-        os.path.splitext(data_path)[0].split("/")[-1]
-        + "_min"
-        + str(params["min_count"])
-    )
+    if os.path.isdir(data_path):
+        name_file = data_path.split("/")[-1] + "_min" + str(params["min_count"])
+    else:
+        name_file = (
+            os.path.splitext(data_path)[0].split("/")[-1]
+            + "_min"
+            + str(params["min_count"])
+        )
     save_path = os.path.join(models_dir, name_file)
     os.makedirs(save_path, exist_ok=True)
     print(f"\nSaving in {save_path}.")
@@ -171,4 +174,7 @@ if __name__ == "__main__":
     np.random.seed(kwargs["seed"])
 
     # train word2vec models
-    # bootstrap_train("data/processed/nytimes_news_articles.bin", models_dir, kwargs, n)
+    bootstrap_train("data/processed/nytimes_news_articles.bin", models_dir, kwargs, n)
+    bootstrap_train("data/processed/wiki.train.tokens.bin", models_dir, kwargs, n)
+    bootstrap_train("data/processed/history_biography", models_dir, kwargs, n)
+    bootstrap_train("data/processed/romance", models_dir, kwargs, n)
