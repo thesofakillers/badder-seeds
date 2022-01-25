@@ -171,12 +171,9 @@ if __name__ == "__main__":
     os.chdir(fdir)
 
     # train word2vec models
-    # bootstrap_train(
-    #     "data/processed/nytimes_news_articles.bin", models_dir, kwargs, seed, n
-    # )
-    # bootstrap_train("data/processed/wiki.train.tokens.bin", models_dir, kwargs, seed, n)
-    # bootstrap_train("data/processed/history_biography", models_dir, kwargs, seed, n)
-    # bootstrap_train("data/processed/romance", models_dir, kwargs, seed, n)
     bootstrap_train(
         "data/processed/nytimes_news_articles.bin", models_dir, kwargs, seed, n
     )
+    bootstrap_train("data/processed/wiki.train.tokens.bin", models_dir, kwargs, seed, n)
+    bootstrap_train("data/processed/history_biography", models_dir, kwargs, seed, n)
+    bootstrap_train("data/processed/romance", models_dir, kwargs, seed, n)
