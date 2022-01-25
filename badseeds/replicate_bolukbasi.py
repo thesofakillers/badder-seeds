@@ -15,6 +15,7 @@ import os
 import metrics
 import seedbank
 
+random.seed(42)
 
 def read_wordembedding(fname):
     """
@@ -233,6 +234,6 @@ if __name__ == "__main__":
     plt.show()
 
     # thoughts:
-    # can kind of replicate with given seeds b) but seems super pruned to suffle seed (in reality they seem to be quite close together)
+    # can kind of replicate with given seeds b) but seems super cherrypicked to suffle seed (in reality they seem to be quite close together)
     # can not really replicate, but a) 'gal' is just in no dataset - explained variance of 1PC huge
     # doesnt make any sense for her to not lower case seeds, when corpus is lower cased wtf
