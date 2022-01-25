@@ -3,28 +3,45 @@ from bootstrap_sampling import *
 from tqdm import tqdm
 import os
 import numpy as np
+from metrics import *
 
 
 def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
     """Trains word2vec gensim model on fed sentence data
     :param list data: list of sentences to feed gensim model
-    :param dict **params: parameters of the gensim function
+    :param dict params: parameters of the gensim function
     :returns KeyedVectors word_vectors: embeddings for gensim model keyed by word"""
 
     model = gm.Word2Vec(sentences=data, **params)
     return model.wv
 
 
-def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) -> list:
+def bootstrap_train(
+    data_path: str, models_dir: str, params: dict, n: int = 20
+) -> list[gm.keyedvectors.KeyedVectors]:
     """Trains word2vec model through bootstrapping n times and saves.
     :param str data_path: path to the data to train on
     :param int n: number of times to bootstrap
-    :param str models_dir: directory to model data
+    :param str models_dir: directory to save model data
     :param dict params: parameters of word2vec model
-    :returns list embeddings: list of embeddings for each bootstrap
+    :returns list embeddings: list of embeddings for each bootstrap, has attribute pos which lists all pos tags of the word.
+        Can get list of all the word's POS tags with gensim's get_vecattr method.
     """
 
     samples = bootstrap(data_path, n)
+    print("Building pos dict:")
+    vocab_pos_samples = []
+    for s in tqdm(samples, unit="bootstrap sample"):
+        pos_vocab = {}
+        for doc in s:
+            for token in doc:
+                if token.text in pos_vocab.keys():
+                    if not token.tag_ in pos_vocab[token.text]:
+                        pos_vocab[token.text].append(token.tag_)
+                else:
+                    pos_vocab[token.text] = [token.tag_]
+        vocab_pos_samples.append(pos_vocab)
+
     print("Building gensim input:")
     text_samples = [
         [[token.text for token in doc] for doc in s]
@@ -35,8 +52,18 @@ def bootstrap_train(data_path: str, models_dir: str, params: dict, n: int = 20) 
         train_word2vec(i, params) for i in tqdm(text_samples, unit="bootstrap sample")
     ]
 
+    print("\nAttaching pos tags to word vectors:")
+    for i, model in enumerate(word_vecs):
+        for word, tag in vocab_pos_samples[i].items():
+            if word in model.key_to_index:
+                model.set_vecattr(word, "pos", tag)
+
     # make model dirs
-    name_file = os.path.splitext(data_path)[0].split("/")[-1]
+    name_file = (
+        os.path.splitext(data_path)[0].split("/")[-1]
+        + "_min"
+        + str(params["min_count"])
+    )
     save_path = os.path.join(models_dir, name_file)
     os.makedirs(save_path, exist_ok=True)
     print(f"\nSaving in {save_path}.")
@@ -64,13 +91,6 @@ if __name__ == "__main__":
 
     # directory to save model in and data file path
     # NOTE: once we have a working preprocess file that does things we can just loop over all dataset directories
-    parser.add_argument(
-        "--data_path",
-        "-dp",
-        default="data/nytimes_news_articles_preprocessed.pkl",
-        type=str,
-        help="Path to directory to processed data file. If relative path, relative to root directory. Default is NYT.",
-    )
     parser.add_argument(
         "--models_dir",
         "-md",
@@ -140,7 +160,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     kwargs = vars(args)
-    data_path = kwargs.pop("data_path")
     models_dir = kwargs.pop("models_dir")
     n = kwargs.pop("n")
 
@@ -152,4 +171,9 @@ if __name__ == "__main__":
     np.random.seed(kwargs["seed"])
 
     # train word2vec models
-    bootstrap_train(data_path, models_dir, kwargs, n)
+    bootstrap_train("data/processed/nytimes_news_articles.bin", models_dir, kwargs, n)
+
+    embeds = gm.KeyedVectors.load(
+        "models/nytimes_news_articles_min10/vectors_sample1.kv"
+    )
+    print(embeds.get_vecattr("good", "pos"))

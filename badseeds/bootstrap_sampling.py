@@ -4,6 +4,7 @@ bootstrap sampling of given dataset
 
 import pickle
 import numpy as np
+from preprocess import read_file
 
 
 def bootstrap(dataset, n=20):
@@ -25,8 +26,7 @@ def bootstrap(dataset, n=20):
     """
 
     # load in file
-    with open(dataset, "rb") as f:
-        x = pickle.load(f)
+    x = read_file(dataset)
 
     print(type(x))
     bootstrap_samples = []

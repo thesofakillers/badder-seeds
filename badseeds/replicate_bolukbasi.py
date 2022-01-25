@@ -49,7 +49,9 @@ def read_wordembedding(fname):
     return embed_dict
 
 
-def pca_seeds_model(seed1, seed2, models, seed1_shuf=False, seed2_shuf=False, components = False):
+def pca_seeds_model(
+    seed1, seed2, models, seed1_shuf=False, seed2_shuf=False, components=False
+):
     """
     replicates figure 3
 
@@ -117,7 +119,11 @@ def pca_seeds_model(seed1, seed2, models, seed1_shuf=False, seed2_shuf=False, co
             variance_inshuffle[:, idx] = pca_inshuffle.explained_variance_ratio_
 
     # print(np.asarray(variance_ordered)[0])
-    return np.asarray(variance_ordered), np.asarray(variance_rnd), np.asarray(variance_inshuffle)
+    return (
+        np.asarray(variance_ordered),
+        np.asarray(variance_rnd),
+        np.asarray(variance_inshuffle),
+    )
 
 
 if __name__ == "__main__":
@@ -131,7 +137,6 @@ if __name__ == "__main__":
     #         "../data/GoogleNews-vectors-negative300.bin", binary=True
     #     )
     # )
-
 
     # replicate fig. 3 with NYT dataset
 

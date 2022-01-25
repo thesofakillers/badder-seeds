@@ -15,54 +15,74 @@ nlp = spacy.load(
 )
 
 
-def read_file(path):
+def read_pproc_dataset(path):
+    """
+    Reads binary file(s) from a path, returning a list of Spacy Docs
+    """
     doc_list = []
     if os.path.isdir(path):
         print("Directory detected, reading and concatenating all containing files")
         for file in tqdm(os.listdir(path)):
             with open(os.path.join(path, file), "rb") as f:
                 bytes_data = f.read()
-            doc_bin = DocBin().from_bytes(bytes_data)
-            doc_list.extend(list(doc_bin.get_docs(nlp.vocab)))
+            doc_list.extend(byte_data_to_doc_list(bytes_data))
     else:
         with open(path, "rb") as f:
             bytes_data = f.read()
-        doc_bin = DocBin().from_bytes(bytes_data)
-        doc_list = list(doc_bin.get_docs(nlp.vocab))
+        doc_list = byte_data_to_doc_list(bytes_data)
     return doc_list
 
 
-def save_file(documents, path):
-    doc_bin = DocBin(attrs=["TAG"])
+def byte_data_to_doc_list(bytes_data):
+    """
+    Converts bytes data to a list of Spacy Docs
+    """
+    doc_bin = DocBin().from_bytes(bytes_data)
+    doc_list = list(doc_bin.get_docs(nlp.vocab))
+    return doc_list
 
+
+def run_spacy_pipe(documents):
+    """
+    Runs spacy pipe (tokenization and POS tagging)
+    on a list of strings,
+    returns only relevant bytes data
+    """
+    doc_bin = DocBin(attrs=["TAG"])
     for doc in tqdm(
         nlp.pipe(documents, disable=["ner", "lemmatizer", "parser", "attribute_ruler"]),
         total=len(documents),
     ):
         doc_bin.add(doc)
-
     bytes_data = doc_bin.to_bytes()
+    return bytes_data
 
+
+def spacy_and_save(documents, path):
+    """
+    passes preprocessed list through spacy pipe for tokenization
+    and POS tagging, then saves efficiently to binary file
+    """
+    bytes_data = run_spacy_pipe(documents)
     with open(path, "wb") as f:
         f.write(bytes_data)
 
 
-def preprocess_nyt():
+def preprocess_nyt(
+    path_to_file="../data/nytimes_news_articles.txt",
+    save_path="../data/processed/nytimes_news_articles.bin",
+    serialize=True,
+    return_memory=False,
+):
     """
-    Tokenise, lowercase and POS tag NYT data, document-wise
-    returns list of Spacy Docs
-    https://spacy.io/api/doc/
-
-    A spacy doc is a list of spacy tokens.
-    To access POS tag of a given token, use token.tag_
-    If you want to have more coarse POS tags, need to enable 'attribute_ruler'
-    Resulting tags will be available from token.pos_
+    Preprocesses the NYT dataset
+    saving a list of tokenized and tagged articles to disk
     """
-    path_to_file = "../data/nytimes_news_articles.txt"
-    save_path = "../data/processed/nytimes_news_articles.bin"
 
     if os.path.isfile(save_path):
         print("Skipping NYT because it is already processed")
+        if return_memory:
+            return read_pproc_dataset(save_path)
     else:
         documents = []
         document = []
@@ -75,33 +95,41 @@ def preprocess_nyt():
                 if len(document) > 0:
                     # get rid of linebreaks, lowercase
                     document = " ".join(document).lower().replace("\n", "")
-                    # tokenize and pos tag with spacy
-                    document = nlp(document)
                     # save
                     documents.append(document)
                     # reset for next document
                     document = []
             else:
                 continue
+        print("Preliminary preprocessing complete; continuing with spacy")
+        bytes_data = run_spacy_pipe(documents)
+        if serialize:
+            with open(save_path, "wb") as f:
+                f.write(bytes_data)
+        if return_memory:
+            return byte_data_to_doc_list(bytes_data)
 
-        print("Done. Now saving all documents in ", save_path)
-        save_file(documents, save_path)
 
+def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/processed/"):
+    """
+    Preprocesses Goodreads datasets
 
-def preprocess_goodreads(name):
+    Parameters
+    ----------
+    name : str
+        name of the dataset to preprocess, either "romance" or "history_biography"
+    path_to_dir : str, optional
+        path to the directory containing the dataset, by default "../data/"
+    save_dir : str, optional
+        path to the directory to save the preprocessed dataset, by default "../data/processed/"
+    """
     if os.path.isdir(f"../data/processed/{name}"):
         print(f"Skipping Goodreads {name} because it is already processed")
     else:
-        if name == "romance":
-            if not os.path.isdir("../data/processed/romance"):
-                os.makedirs("../data/processed/romance")
-            path_to_file = "../data/goodreads_reviews_romance.json"
-            save_path = "../data/processed/romance/goodreads_reviews_romance"
-        else:
-            if not os.path.isdir("../data/processed/history_biography"):
-                os.makedirs("../data/processed/history_biography")
-            path_to_file = "../data/goodreads_reviews_history_biography.json"
-            save_path = "../data/processed/history_biography/goodreads_reviews_history_biography"
+        if not os.path.isdir(os.path.join(save_dir, name)):
+            os.makedirs(os.path.join(save_dir, name))
+        path_to_file = os.path.join(path_to_dir, f"goodreads_reviews_{name}.json")
+        save_path = os.path.join(save_dir, f"/{name}/goodreads_reviews_{name}")
 
         with open(path_to_file, "r") as f:
             lines = f.readlines()
@@ -140,18 +168,21 @@ def preprocess_goodreads(name):
             ):
                 document = data["review_text"]
                 document = document.lower().replace("\n", "")
-                document = nlp(document)
                 documents.append(document)
 
             if index != 0 and index % 500000 == 0 or index == len(lines) - 1:
                 current_save_path = save_path + f"_{index}.bin"
-                save_file(documents, current_save_path)
+                spacy_and_save(documents, current_save_path)
                 documents = []
 
 
-def preprocess_wiki():
-    path_to_file = "../data/WikiText103/wikitext-103/wiki.train.tokens"
-    save_path = "../data/processed/wiki.train.tokens.bin"
+def preprocess_wiki(
+    path_to_file="../data/WikiText103/wikitext-103/wiki.train.tokens",
+    save_path="../data/processed/wiki.train.tokens.bin",
+    serialize=True,
+    return_memory=False,
+):
+    """Preprocesses the WikiText dataset"""
     if os.path.isfile(save_path):
         print("Skipping WikiText103 because it is already processed")
     else:
@@ -184,32 +215,49 @@ def preprocess_wiki():
             for start_idx, end_idx in zip(doc_idxs, doc_idxs[1:])
         ]
 
-        print("Done. Now saving all documents in ", save_path)
-        save_file(documents, save_path)
+        print("Preliminary preprocessing complete; continuing with spacy")
+        bytes_data = run_spacy_pipe(documents)
+        if serialize:
+            with open(save_path, "wb") as f:
+                f.write(bytes_data)
+        if return_memory:
+            return byte_data_to_doc_list(bytes_data)
 
 
 def preprocess_datasets():
+    """preprocesses all the datasets"""
     preprocess_nyt()
     preprocess_wiki()
     preprocess_goodreads("romance")
     preprocess_goodreads("history_biography")
 
 
-def read_preprocessed_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
+def read_pproc_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
+    """
+    reads all the preprocessed datasets from disk, returning a dictionary
+    if a given path is not passed, the corresponding dataset is not read
+    some datasets take a while to read, so this may be desired
+    """
     pproc_datasets = {
         "NYT": [],
         "WikiText": [],
         "Goodreads (Romance)": [],
         "Goodreads (History/Biography)": [],
     }
-    print("reading nyt")
-    pproc_datasets["NYT"] = read_file(nyt_path)
-    print("reading wikitext")
-    pproc_datasets["WikiText"] = read_file(wiki_path)
-    print("reading goodreads romance")
-    pproc_datasets["Goodreads (Romance)"] = read_file(grr_dir_path)
-    print("reading goodreads history/biography")
-    pproc_datasets["Goodreads (History/Biography)"] = read_file(grhb_dir_path)
+    if nyt_path:
+        print("reading nyt")
+        pproc_datasets["NYT"] = read_pproc_dataset(nyt_path)
+    if wiki_path:
+        print("reading wikitext")
+        pproc_datasets["WikiText"] = read_pproc_dataset(wiki_path)
+    if grr_dir_path:
+        print("reading goodreads romance")
+        pproc_datasets["Goodreads (Romance)"] = read_pproc_dataset(grr_dir_path)
+    if grhb_dir_path:
+        print("reading goodreads history/biography")
+        pproc_datasets["Goodreads (History/Biography)"] = read_pproc_dataset(
+            grhb_dir_path
+        )
     return pproc_datasets
 
 
