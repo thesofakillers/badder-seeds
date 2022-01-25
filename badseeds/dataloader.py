@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # Download the NYT dataset
     destination = "../data/nytimes_news_articles.txt.gz"
     out_file_path = "../data/nytimes_news_articles.txt"
-    file_id = "1ITZ6FZq4_C2hs7k540ZYiReNTlWGt4nz"
+    file_id = "1-2LL6wgTwDzTKfPx3RQrXi-LS6lraFYn"
     download_and_unzip(destination, out_file_path, file_id)
 
     # Create folder for seed data
@@ -77,9 +77,9 @@ if __name__ == "__main__":
         print("Created folder : ", "../data/seeds")
 
     # download seeds
-    recieve = requests.get(
+    receive = requests.get(
         "https://raw.githubusercontent.com/maria-antoniak/bad-seeds/main/gathered_seeds.json"
     )
     # r_dictionary= r.json()
     with open(r"../data/seeds/seeds.json", "wb") as f:
-        f.write(recieve.content)
+        f.write(receive.content)
