@@ -10,9 +10,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
-import copy
 import os
-import random
 from sklearn.metrics.pairwise import cosine_similarity
 
 import metrics
@@ -129,7 +127,6 @@ if __name__ == "__main__":
         "himself",
         "his",
     ]
-    embed_a = [catch_keyerror(models, word) for word in list_a]
 
     list_b = [
         "likelihood",
@@ -139,11 +136,9 @@ if __name__ == "__main__":
         "setback",
         "photographed",
         "tales" "hood",
-        "gracia",
         "danced",
+        "gracia",
     ]
-
-    embed_b = [catch_keyerror(models, word) for word in list_b]
 
     list_c = [
         "outcomes",
@@ -158,6 +153,8 @@ if __name__ == "__main__":
         "md",
     ]
 
+    embed_b = [catch_keyerror(models, word) for word in list_b]
+    embed_a = [catch_keyerror(models, word) for word in list_a]
     embed_c = [catch_keyerror(models, word) for word in list_c]
 
     sim = figure_4(
