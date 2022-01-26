@@ -86,8 +86,8 @@ if __name__ == "__main__":
     )
 
     # empty seed sets
-    criterion = seeds.Seeds.map(lambda x: len(x) == 0)
-    print(seeds[criterion])
+    # criterion = seeds.Seeds.map(lambda x: len(x) == 0)
+    # print(seeds[criterion])
 
     # get coherence numbers and normalize
     for s in tqdm(models, unit="models"):
