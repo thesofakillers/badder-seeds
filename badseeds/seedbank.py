@@ -77,10 +77,6 @@ def seedbanking(dataset):
     seeds["Category"] = seeds["Category"].apply(clean)
     seeds = seeds.sort_values(by="Category")
 
-    seeds["Seeds"] = (
-        seeds["Seeds"].str.replace("[\[\]']", "", regex=True).str.split(", ")
-    )
-
     return seeds
 
 
