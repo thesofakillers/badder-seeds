@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     # replicate fig. 3 with NYT dataset
 
-    direct = os.fsencode("../models/nytimes_news_articles_preprocessed/")
+    direct = os.fsencode("../data/models/nytimes_news_articles_min100/")
 
     for filename in os.listdir(direct):
         print(filename)
