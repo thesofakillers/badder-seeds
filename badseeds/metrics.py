@@ -161,6 +161,9 @@ def get_subspace_vec(
             bias_subspace_v = (mean1 - mean2).reshape(1, -1)
         except KeyError:
             print("KeyError")
+            print(set1)
+            print(set2)
+            raise KeyError
     elif mode == "pca":
         # bias subspace is first principal component of PCA
         pca_matrix = do_pca(set1, set2, embeddings, num_components=1)
