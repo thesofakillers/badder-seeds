@@ -5,7 +5,8 @@ import shutil
 import gdown
 from zipfile import ZipFile
 import requests
-import getopt, sys
+import getopt
+import sys
 
 
 def download_and_unzip(destination, out_file_path, file_id):
@@ -45,8 +46,8 @@ def unzip_folder(destination, out_file_path, file_id):
         print(f"Unzipping the {name} dataset")
 
         extension = destination.split(".")[-1]
-        with ZipFile(destination, 'r') as zip:
-            print('Extracting all the files now...')
+        with ZipFile(destination, "r") as zip:
+            print("Extracting all the files now...")
             zip.extractall(out_file_path)
             print(f"Finished unzipping the {destination} dataset")
 
@@ -55,9 +56,11 @@ if __name__ == "__main__":
 
     # insure commandline arguments
     if len(sys.argv) <= 1:
-        print('Please specify with one of the following arguments to download: \n --raw \n --cleaned \n --seeds \n --pretrained \n')
+        print(
+            "Please specify with one of the following arguments to download: \n --raw \n --cleaned \n --seeds \n --pretrained \n"
+        )
         exit(1)
-    
+
     # Remove 1st argument from the
     # list of command line arguments
     argumentList = sys.argv[1:]
@@ -145,7 +148,6 @@ if __name__ == "__main__":
                     # download pretrained embeddings of unigram
                     os.makedirs("../data/models")
                     print("Created folder : ", "../data/models")
-
 
                 destination = "../data/models/history_biography_min10.zip"
                 out_file_path = "../data/models/"
