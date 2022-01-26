@@ -108,5 +108,6 @@ def catch_keyerror(models, word):
     """
     try:
         return (models[0])[word]
-    except KeyError:
+    except KeyError as e:
+        print(e)
         pass
