@@ -70,7 +70,7 @@ def seedbanking(dataset):
 
     Returns
     --------
-    seeds: Pandas DatatFrame
+    seeds: Pandas DataFrame
         ordered by category, DataFrame with seeds and meta information
     """
     seeds = pd.read_json(dataset)
