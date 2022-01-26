@@ -60,7 +60,6 @@ if __name__ == "__main__":
     direct = os.fsencode("../data/models/nytimes_news_articles_min100/")
 
     for filename in os.listdir(direct):
-        print(filename)
         f = os.path.join(direct, filename)
 
         # checking if it is a file
