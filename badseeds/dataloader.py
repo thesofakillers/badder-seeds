@@ -63,7 +63,6 @@ if __name__ == "__main__":
         default="./config.json",
         help="path to JSON config file outlying directory paths",
         type=str,
-        required=True,
     )
     parser.add_argument(
         "-r",
@@ -93,19 +92,27 @@ if __name__ == "__main__":
         help="download pretrained model embeddings",
         default=False,
     )
+    parser.add_argument(
+        "-a",
+        "--all",
+        action="store_true",
+        help="download all datasets and models",
+        default=False,
+    )
     # parse args
     args = parser.parse_args()
     # read config file
     with open(args.config, "r") as f:
         config = json.load(f)
     # ensure at least one of the flags is set
-    if not (args.raw or args.preprocessed or args.seeds or args.models):
+    if not (args.raw or args.preprocessed or args.seeds or args.models or args.all):
         print(
-            "Please specify at least one of the following: --raw, --preprocessed, --seeds, --models"
+            "Please specify at least one of the following: --raw, --preprocessed, --seeds, --models, --all"
         )
+        parser.print_help(sys.stderr)
         sys.exit(1)
 
-    if args.raw:
+    if args.raw or args.all:
         raw_path = config["raw"]["dir_path"]
         # Create folder for data
         if not os.path.isdir(raw_path):
@@ -138,7 +145,7 @@ if __name__ == "__main__":
         file_id = "1-2LL6wgTwDzTKfPx3RQrXi-LS6lraFYn"
         download_and_unzip(destination, out_file_path, file_id)
 
-    if args.seeds:
+    if args.seeds or args.all:
         seeds_path = config["seeds"]["dir_path"]
         # Create folder for seed data
         if not os.path.isdir(seeds_path):
@@ -154,7 +161,7 @@ if __name__ == "__main__":
             f.write(receive.content)
         print("Seeds are downloaded!")
 
-    if args.preprocessed:
+    if args.preprocessed or args.all:
         pproc_path = config["preprocessed"]["dir_path"]
         if not os.path.isdir(pproc_path):
             os.makedirs(pproc_path)
@@ -166,7 +173,7 @@ if __name__ == "__main__":
         file_id = "1-829_LhP213j5-Xthwnj-CAxz9VC3GTH"
         unzip_folder(destination, out_file_path, file_id)
 
-    if args.models:
+    if args.models or args.all:
         models_path = config["models"]["dir_path"]
         if not os.path.isdir(models_path):
             os.makedirs(models_path)
