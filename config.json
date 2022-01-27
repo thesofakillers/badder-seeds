@@ -13,6 +13,7 @@
     "dir_path": "./data/preprocessed_data/"
   },
   "models": {
+    "dir_path": "./data/models/",
     "google_news_subpath": "GoogleNews-vectors-negative300",
     "goodreads_hb_subpath": {
       "0": "history_biography_min0",
