@@ -179,47 +179,70 @@ if __name__ == "__main__":
             os.makedirs(models_path)
             print("Created folder : ", models_path)
 
-        # Download the GoogleNews dataset
+        # Download the embeddings trained on the GoogleNews dataset
         g_news_path = os.path.join(models_path, config["models"]["google_news_subpath"])
         destination = g_news_path + ".bin.gz"
         out_file_path = g_news_path + ".bin"
         file_id = "0B7XkCwpI5KDYNlNUTTlSS21pQmM"
         download_and_unzip(destination, out_file_path, file_id)
 
-        gr_hb_path_10 = os.path.join(
-            models_path, config["models"]["goodreads_hb_subpath"]["10"]
-        )
-        destination = gr_hb_path_10 + ".zip"
-        out_file_path = models_path
-        file_id = "1yD3Q4dfWRfQIa6VSMwqgmKD5i91KoFEL"
-        unzip_folder(destination, out_file_path, file_id)
+        # Download the embeddings trained on the NYT dataset
+        for i, file_id in zip(
+            [0, 10, 100],
+            [
+                "14eLHQ7oo1_V6DT8h_cd69-j4e-dF7Ymg",
+                "1JXzX0Egg0Hw8YpoQexc1qJG6KTK929jE",
+                "1LHdwfpvPKI02kYpzTqepMKkK3xOHEyXD",
+            ],
+        ):
+            nyt_path = os.path.join(
+                models_path, config["models"]["nyt_subpath"][str(i)]
+            )
+            destination = nyt_path + ".zip"
+            out_file_path = models_path
+            unzip_folder(destination, out_file_path, file_id)
 
-        # Download the NYT dataset min frequency 10
-        nyt_path_10 = os.path.join(models_path, config["models"]["nyt_subpath"]["10"])
-        destination = nyt_path_10 + ".zip"
-        out_file_path = models_path
-        file_id = "1JXzX0Egg0Hw8YpoQexc1qJG6KTK929jE"
-        unzip_folder(destination, out_file_path, file_id)
+        # Download the embeddings trained on Goodreads history biography reviews
+        for i, file_id in zip(
+            [0, 10],
+            [
+                "1COecvAc3pjcIG7vpy6mGYTB28wc0gu4F",
+                "1yD3Q4dfWRfQIa6VSMwqgmKD5i91KoFEL",
+            ],
+        ):
+            history_biography_path = os.path.join(
+                models_path, config["models"]["goodreads_hb_subpath"][str(i)]
+            )
+            destination = history_biography_path + ".zip"
+            out_file_path = models_path
+            unzip_folder(destination, out_file_path, file_id)
 
-        # Download the NYT dataset min frequency 100
-        nyt_path_100 = os.path.join(models_path, config["models"]["nyt_subpath"]["100"])
-        destination = nyt_path_100 + ".zip"
-        out_file_path = models_path
-        file_id = "1LHdwfpvPKI02kYpzTqepMKkK3xOHEyXD"
-        unzip_folder(destination, out_file_path, file_id)
+        # Download the embeddings trained on Goodreads romance reviews
+        for i, file_id in zip(
+            [0, 10],
+            [
+                "1l1W9VKjmJVUtzE6dZYfgh0RzVRszYPPU",
+                "1LZOiQSWvl82qglCTZSp-nVurUmSO6qPj",
+            ],
+        ):
+            romance_path = os.path.join(
+                models_path, config["models"]["goodreads_r_subpath"][str(i)]
+            )
+            destination = romance_path + ".zip"
+            out_file_path = models_path
+            unzip_folder(destination, out_file_path, file_id)
 
-        # Download the romance dataset
-        romance_path_10 = os.path.join(
-            models_path, config["models"]["goodreads_r_subpath"]["10"]
-        )
-        destination = romance_path_10 + ".zip"
-        out_file_path = models_path
-        file_id = "1LZOiQSWvl82qglCTZSp-nVurUmSO6qPj"
-        unzip_folder(destination, out_file_path, file_id)
-
-        # Download the wiki_train_tokens_min10 dataset
-        wiki_path_10 = os.path.join(models_path, config["models"]["wiki_subpath"]["10"])
-        destination = wiki_path_10 + ".zip"
-        out_file_path = models_path
-        file_id = "1KNRsNnIdtic-kch8XzE3s0ukix6gt4Dp"
-        unzip_folder(destination, out_file_path, file_id)
+        # Download the embeddings trained on wikitext
+        for i, file_id in zip(
+            [0, 10],
+            [
+                "1Y4_dQE_tbXun2YSFHllePv4IrVPtOTJB",
+                "1KNRsNnIdtic-kch8XzE3s0ukix6gt4Dp",
+            ],
+        ):
+            wiki_path = os.path.join(
+                models_path, config["models"]["wiki_subpath"][str(i)]
+            )
+            destination = wiki_path + ".zip"
+            out_file_path = models_path
+            unzip_folder(destination, out_file_path, file_id)
