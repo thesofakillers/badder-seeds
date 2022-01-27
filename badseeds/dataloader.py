@@ -70,7 +70,6 @@ if __name__ == "__main__":
         "--raw",
         action="store_true",
         help="download raw data",
-        type=bool,
         default=False,
     )
     parser.add_argument(
@@ -78,7 +77,6 @@ if __name__ == "__main__":
         "--preprocessed",
         action="store_true",
         help="download preprocessed data",
-        type=bool,
         default=False,
     )
     parser.add_argument(
@@ -86,7 +84,6 @@ if __name__ == "__main__":
         "--seeds",
         action="store_true",
         help="download seeds",
-        type=bool,
         default=False,
     )
     parser.add_argument(
@@ -94,7 +91,6 @@ if __name__ == "__main__":
         "--models",
         action="store_true",
         help="download pretrained model embeddings",
-        type=bool,
         default=False,
     )
     # parse args
