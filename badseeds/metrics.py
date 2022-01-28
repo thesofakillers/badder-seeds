@@ -107,7 +107,7 @@ def do_pca(seed1, seed2, embedding, num_components=10):
     """
 
     matrix = []
-    # num_components = 
+    # num_components =
     for a, b in zip(seed1, seed2):
         try:
             center = (embedding[a] + embedding[b]) / 2

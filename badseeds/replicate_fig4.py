@@ -158,7 +158,6 @@ if __name__ == "__main__":
         "danced",
     ]
 
-
     list_c = [
         "outcomes",
         "son",

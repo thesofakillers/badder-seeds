@@ -92,7 +92,6 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = json.load(f)
 
-
     seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json")
     seeds.set_index("Seeds ID", inplace=True)
     seed_sets = [
@@ -113,14 +112,11 @@ if __name__ == "__main__":
         "goodreads_hb_subpath",
     ]
 
-
     for f in filenames:
         models = []
         direct = os.fsencode(
-            os.path.join(
-                config["models"]["dir_path"], config["models"][f]["0"]
-            )
-        )   
+            os.path.join(config["models"]["dir_path"], config["models"][f]["0"])
+        )
 
         for filename in os.listdir(direct):
             # print(filename)
@@ -129,11 +125,10 @@ if __name__ == "__main__":
             # checking if it is a file
             if os.path.isfile(f):
                 f = os.fsdecode(f)
-                if '.npy' not in f:
+                if ".npy" not in f:
                     models.append(KeyedVectors.load(f))
 
         datasets.append(models)
-
 
     similarity = figure_2(extracted_seeds, datasets)
 
@@ -142,25 +137,41 @@ if __name__ == "__main__":
             print(i, "\n")
             print(j, "\n \n")
 
-
     # viz
-    df1 = pd.DataFrame(zip(similarity[0], seed_sets, ['history and biography']*len(seeds)), columns=["cosine similarity", "seed set", "dataset"])
-    df2 = pd.DataFrame(zip(similarity[1],  seed_sets, ['romance']*len(seeds)), columns=["cosine similarity",  "seed set", "dataset"])
-    
-    df = pd.concat([df1,df2])
-    df = df.explode('cosine similarity')
-    df['cosine similarity'] = df['cosine similarity'].astype('float')
+    df1 = pd.DataFrame(
+        zip(similarity[0], seed_sets, ["history and biography"] * len(seeds)),
+        columns=["cosine similarity", "seed set", "dataset"],
+    )
+    df2 = pd.DataFrame(
+        zip(similarity[1], seed_sets, ["romance"] * len(seeds)),
+        columns=["cosine similarity", "seed set", "dataset"],
+    )
+
+    df = pd.concat([df1, df2])
+    df = df.explode("cosine similarity")
+    df["cosine similarity"] = df["cosine similarity"].astype("float")
 
     # Creating plot
     sns.set_theme(style="whitegrid")
     fig, ax = plt.subplots()
-    ax1 = sns.boxplot(x="cosine similarity", y="seed set", hue="dataset", data=df, palette="Accent")
-    ax2 = sns.stripplot(x="cosine similarity", y="seed set", hue="dataset", data=df, jitter=True,
-              palette="Accent", dodge=True,linewidth=1,edgecolor='gray')
-    
+    ax1 = sns.boxplot(
+        x="cosine similarity", y="seed set", hue="dataset", data=df, palette="Accent"
+    )
+    ax2 = sns.stripplot(
+        x="cosine similarity",
+        y="seed set",
+        hue="dataset",
+        data=df,
+        jitter=True,
+        palette="Accent",
+        dodge=True,
+        linewidth=1,
+        edgecolor="gray",
+    )
+
     legend = ax1.get_legend()
     handles = legend.legendHandles
-    ax.legend(handles, ['history and biography', 'romance'])
+    ax.legend(handles, ["history and biography", "romance"])
 
     # show plot
     plt.show()
