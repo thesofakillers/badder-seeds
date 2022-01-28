@@ -145,7 +145,6 @@ if __name__ == "__main__":
         "himself",
         "his",
     ]
-    embed_a = [catch_keyerror(models, word) for word in list_a]
 
     list_b = [
         "likelihood",
@@ -159,7 +158,6 @@ if __name__ == "__main__":
         "danced",
     ]
 
-    embed_b = [catch_keyerror(models, word) for word in list_b]
 
     list_c = [
         "outcomes",
@@ -174,6 +172,8 @@ if __name__ == "__main__":
         "md",
     ]
 
+    embed_a = [catch_keyerror(models, word) for word in list_a]
+    embed_b = [catch_keyerror(models, word) for word in list_b]
     embed_c = [catch_keyerror(models, word) for word in list_c]
 
     sim = figure_4(

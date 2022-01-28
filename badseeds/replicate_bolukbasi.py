@@ -117,9 +117,9 @@ def pca_seeds_model(
             variance_inshuffle.append(pca_ordered.components_)
 
         else:
-            variance_ordered[:, idx] = pca_ordered.explained_variance_ratio_
-            variance_rnd[:, idx] = pca_rnd.explained_variance_ratio_
-            variance_inshuffle[:, idx] = pca_inshuffle.explained_variance_ratio_
+            variance_ordered.append(pca_ordered.explained_variance_ratio_)
+            variance_rnd.append(pca_rnd.explained_variance_ratio_)
+            variance_inshuffle.append(pca_inshuffle.explained_variance_ratio_)
 
     # print(np.asarray(variance_ordered)[0])
     return (
@@ -130,6 +130,7 @@ def pca_seeds_model(
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser(
         description="Replicates figure 4 in Atoniak et al. (2021)"
     )
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 
     direct = os.fsencode(
         os.path.join(
-            config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
+            config["models"]["dir_path"], config["models"]["nyt_subpath"]["10"]
         )
     )
 
@@ -176,86 +177,160 @@ if __name__ == "__main__":
     seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json")
     seed.set_index("Seeds ID", inplace=True)
 
-    gender_seed_list = [
-        "definitional_female-Bolukbasi_et_al_2016",
-        "definitional_male-Bolukbasi_et_al_2016",
-    ]
-    class_seeds_list = [
-        "upperclass-Kozlowski_et_al_2019",
-        "lowerclass-Kozlowski_et_al_2019",
-    ]
-    names_seeds_lists = [
-        "names_chinese-Garg_et_al_2018",
-        "names_hispanic-Garg_et_al_2018",
-    ]
+    seed_genres = ["gender pairs", "social class pairs", "chinese-hispanic name pairs"]
 
-    # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
-    seed_list = seedbank.get_seeds(seed, gender_seed_list)
-    seed1 = [item.lower() for item in seed_list[0]]
-    seed2 = [item.lower() for item in seed_list[1]]
+    seed_list = [
+        [
+            "definitional_female-Bolukbasi_et_al_2016",
+            "definitional_male-Bolukbasi_et_al_2016",
+        ],
+        [
+            "upperclass-Kozlowski_et_al_2019",
+            "lowerclass-Kozlowski_et_al_2019",
+        ],
+        [
+            "names_chinese-Garg_et_al_2018",
+            "names_hispanic-Garg_et_al_2018",
+        ],
+    ]
 
     # hard coded shuffled seeds from paper
 
-    seed1_shuf = [
-        "herself",
-        "woman",
-        "daughter",
-        "Mary",
-        "her",
-        "girl",
-        "mother",
-        "she",
-        "female",
-        "gal",
+    shuffled_seeds = [
+        [
+            [
+                "herself",
+                "woman",
+                "daughter",
+                "Mary",
+                "her",
+                "girl",
+                "mother",
+                "she",
+                "female",
+                "gal",
+            ],
+            [
+                "man",
+                "his",
+                "he",
+                "son",
+                "guy",
+                "himself",
+                "father",
+                "boy",
+                "male",
+                "John",
+            ],
+        ],
+        [
+            [
+                "richer",
+                "opulent",
+                "luxury",
+                "affluent",
+                "rich",
+                "affluence",
+                "richest",
+                "expensive",
+            ],
+            [
+                "poorer",
+                "impoverished",
+                "poorest",
+                "cheap",
+                "needy",
+                "poverty",
+                "inexpensive",
+                "poor",
+            ],
+        ],
+        [
+            [
+                "tang",
+                "chang",
+                "chu",
+                "yang",
+                "wu",
+                "hong",
+                "huang",
+                "wong",
+                "hu",
+                "liu",
+                "lin",
+                "chen",
+                "liang",
+                "chung",
+                "li",
+                "ng",
+                "wang",
+            ],
+            [
+                "ruiz",
+                "rodriguez",
+                "diaz",
+                "perez",
+                "lopez",
+                "vargas",
+                "alvarez",
+                "garcia",
+                "cruz",
+                "torres",
+                "gonzalez",
+                "soto",
+                "martinez",
+                "medina",
+                "rivera",
+                "castillo",
+                "castro",
+                "mendoza",
+                "sanchez",
+                "gomez",
+            ],
+        ],
     ]
-    seed2_shuf = [
-        "man",
-        "his",
-        "he",
-        "son",
-        "guy",
-        "himself",
-        "father",
-        "boy",
-        "male",
-        "John",
-    ]
 
-    # seed1_shuf = ['richer', 'opulent', 'luxury', 'affluent', 'rich', 'affluence', 'richest', 'expensive']
-    # seed2_shuf = ['poorer', 'impoverished', 'poorest', 'cheap', 'needy', 'poverty', 'inexpensive', 'poor']
-
-    # seed1_shuf = ['tang', 'chang', 'chu', 'yang', 'wu', 'hong', 'huang', 'wong', 'hu', 'liu', 'lin', 'chen', 'liang', 'chung', 'li', 'ng', 'wang']
-    # seed2_shuf = ['ruiz', 'rodriguez', 'diaz', 'perez', 'lopez', 'vargas', 'alvarez', 'garcia', 'cruz', 'torres', 'gonzalez', 'soto', 'martinez', 'medina', 'rivera', 'castillo', 'castro', 'mendoza', 'sanchez', 'gomez']
-
-    # figure 3
-
-    variance_ordered, variance_rnd, variance_inshuffle = pca_seeds_model(
-        seed1, seed2, models, seed1_shuf, seed2_shuf
-    )
 
     # Visualization
 
-    print(" \n Variance of ordered pairs: \n", variance_ordered)
-    print(" \n Variance of random word pairs: \n", variance_rnd)
-    print(" \n Variance of inplace shuffled pairs: \n", variance_inshuffle)
-    plt.bar(
-        range(10),
-        np.mean(variance_ordered, axis=1),
-        yerr=np.std(variance_ordered, axis=1),
-    )
-    plt.title("Variance of ordered pairs")
-    plt.show()
-    plt.bar(
-        range(10), np.mean(variance_rnd, axis=1), yerr=np.std(variance_ordered, axis=1)
-    )
-    plt.title("Variance of random word pairs")
-    plt.show()
-    plt.bar(
-        range(10),
-        np.mean(variance_inshuffle, axis=1),
-        yerr=np.std(variance_ordered, axis=1),
-    )
-    plt.title("Variance of inplace shuffled pairs")
+    x = np.arange(10)
+    width = 0.4
+    fig, axes = plt.subplots(1, 3)
+
+    # for row in axes
+    for idx, ax in enumerate(axes):
+
+        # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
+        seed_lists = seedbank.get_seeds(seed, seed_list[idx])
+        seed1 = [item.lower() for item in seed_lists[0]]
+        seed2 = [item.lower() for item in seed_lists[1]]
+
+        seed1_shuf = (shuffled_seeds[idx])[0]
+        seed2_shuf = (shuffled_seeds[idx])[1]
+
+        variance_ordered, variance_rnd, variance_inshuffle = pca_seeds_model(
+            seed1, seed2, models, seed1_shuf, seed2_shuf
+        )
+
+        ax.bar(
+            x - 0.2,
+            np.mean(variance_ordered, axis=0),
+            width,
+            yerr=np.std(variance_ordered, axis=0),
+            label="original order",
+        )
+
+        ax.bar(
+            x + 0.2,
+            np.mean(variance_inshuffle, axis=0),
+            width,
+            yerr=np.std(variance_inshuffle, axis=0),
+            label="shuffled",
+        )
+        ax.legend()
+        ax.set_xlabel("Prinicipal Component")
+        ax.set_ylabel("Explained Variance")
+        ax.set_title(seed_genres[idx])
     plt.show()
 
     # thoughts:
