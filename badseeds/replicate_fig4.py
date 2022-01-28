@@ -71,7 +71,9 @@ if __name__ == "__main__":
 
     # get embeddings trained on NYT with min freq of 100
     direct = os.fsencode(
-        os.path.join(config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"])
+        os.path.join(
+            config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
+        )
     )
 
     for filename in os.listdir(direct):
