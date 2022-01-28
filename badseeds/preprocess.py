@@ -1,3 +1,4 @@
+import itertools
 import argparse
 from tqdm import tqdm
 import spacy
@@ -17,29 +18,38 @@ nlp = spacy.load(
 
 def read_pproc_dataset(path):
     """
-    Reads binary file(s) from a path, returning a list of Spacy Docs
+    Reads binary file(s) from a path, returning a list of Spacy DocBins
     """
-    doc_list = []
     if os.path.isdir(path):
         print("Directory detected, reading and concatenating all containing files")
+        doc_bin = []
         for file in tqdm(os.listdir(path)):
             with open(os.path.join(path, file), "rb") as f:
                 bytes_data = f.read()
-            doc_list.extend(byte_data_to_doc_list(bytes_data))
+            doc_bin.append(byte_data_to_docbin(bytes_data))
     else:
         with open(path, "rb") as f:
             bytes_data = f.read()
-        doc_list = byte_data_to_doc_list(bytes_data)
-    return doc_list
+        doc_bin = byte_data_to_docbin(bytes_data)
+    return doc_bin
 
 
-def byte_data_to_doc_list(bytes_data):
+def docbin_to_docs(doc_bin):
     """
-    Converts bytes data to a list of Spacy Docs
+    converts a Spacy DocBin to a list of Spacy Docs
     """
-    doc_bin = DocBin().from_bytes(bytes_data)
-    doc_list = list(doc_bin.get_docs(nlp.vocab))
-    return doc_list
+    if type(doc_bin) == list:
+        return itertools.chain(*[dbin.get_docs(nlp.vocab) for dbin in doc_bin])
+    else:
+        return doc_bin.get_docs(nlp.vocab)
+
+
+def byte_data_to_docbin(bytes_data):
+    """
+    Converts bytes data to a Spacy DocBin
+    """
+    doc_bin = DocBin(attrs=["TAG", "IS_ALPHA", "IS_DIGIT"]).from_bytes(bytes_data)
+    return doc_bin
 
 
 def run_spacy_pipe(documents):
@@ -107,7 +117,7 @@ def preprocess_nyt(
             with open(save_path, "wb") as f:
                 f.write(bytes_data)
         if return_memory:
-            return byte_data_to_doc_list(bytes_data)
+            return byte_data_to_docbin(bytes_data)
 
 
 def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/processed/"):
@@ -221,7 +231,7 @@ def preprocess_wiki(
             with open(save_path, "wb") as f:
                 f.write(bytes_data)
         if return_memory:
-            return byte_data_to_doc_list(bytes_data)
+            return byte_data_to_docbin(bytes_data)
 
 
 def preprocess_datasets():
@@ -239,10 +249,10 @@ def read_pproc_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
     some datasets take a while to read, so this may be desired
     """
     pproc_datasets = {
-        "NYT": [],
-        "WikiText": [],
-        "Goodreads (Romance)": [],
-        "Goodreads (History/Biography)": [],
+        "NYT": None,
+        "WikiText": None,
+        "Goodreads (Romance)": None,
+        "Goodreads (History/Biography)": None,
     }
     if nyt_path:
         print("reading nyt")
