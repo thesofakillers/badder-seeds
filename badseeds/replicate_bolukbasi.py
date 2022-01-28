@@ -4,13 +4,15 @@ code source: https://github.com/tolga-b/debiaswe
 data source: https://drive.google.com/drive/folders/0B5vZVlu2WoS5dkRFY19YUXVIU2M?resourcekey=0-rZ1HR4Fb0XCi4HFUERGhRA
 """
 
+import json
+import argparse
+import copy
+import os
+
 from matplotlib import pyplot as plt
 import random
 import numpy as np
-import pandas as pd
 from gensim.models import KeyedVectors
-import copy
-import os
 
 import metrics
 import seedbank
@@ -115,9 +117,9 @@ def pca_seeds_model(
             variance_inshuffle.append(pca_ordered.components_)
 
         else:
-            variance_ordered.append(pca_ordered.explained_variance_ratio_)
-            variance_rnd.append(pca_ordered.explained_variance_ratio_)
-            variance_inshuffle.append(pca_ordered.explained_variance_ratio_)
+            variance_ordered[:, idx] = pca_ordered.explained_variance_ratio_
+            variance_rnd[:, idx] = pca_rnd.explained_variance_ratio_
+            variance_inshuffle[:, idx] = pca_inshuffle.explained_variance_ratio_
 
     # print(np.asarray(variance_ordered)[0])
     return (
@@ -128,6 +130,19 @@ def pca_seeds_model(
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Replicates figure 4 in Atoniak et al. (2021)"
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="path to config JSON file containing path to seeds",
+        default="config.json",
+        type=str,
+    )
+    args = parser.parse_args()
+    with open(args.config, "r") as f:
+        config = json.load(f)
 
     models = []
 
@@ -141,7 +156,11 @@ if __name__ == "__main__":
 
     # replicate fig. 3 with NYT dataset
 
-    direct = os.fsencode("../data/models/nytimes_news_articles_min10/")
+    direct = os.fsencode(
+        os.path.join(
+            config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
+        )
+    )
 
     for filename in os.listdir(direct):
         print(filename)
@@ -154,7 +173,7 @@ if __name__ == "__main__":
 
     # get desired seeds:
 
-    seed = seedbank.seedbanking("../data/seeds/seeds.json")
+    seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json")
     seed.set_index("Seeds ID", inplace=True)
 
     gender_seed_list = [
@@ -211,7 +230,7 @@ if __name__ == "__main__":
     # figure 3
 
     variance_ordered, variance_rnd, variance_inshuffle = pca_seeds_model(
-        seed1, seed2, models, seed1_shuf, seed2_shuf, components = True
+        seed1, seed2, models, seed1_shuf, seed2_shuf
     )
 
     # Visualization

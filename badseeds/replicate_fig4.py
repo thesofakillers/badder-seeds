@@ -6,14 +6,16 @@ basically extract 1st PC and compute cosine similarity between it and listed wor
 ## still pretty ugly 
 """
 
+import argparse
+import json
+import os
+
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
-import os
 from sklearn.metrics.pairwise import cosine_similarity
 
-import metrics
 import seedbank
 import replicate_bolukbasi
 from utils import catch_keyerror
@@ -42,9 +44,21 @@ def figure_4(variance_ordered, variance_rnd, variance_inshuffle, sim_list):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Replicates figure 4 in Atoniak et al. (2021)"
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="path to config JSON file containing path to seeds",
+        default="config.json",
+        type=str,
+    )
+    args = parser.parse_args()
+    with open(args.config, "r") as f:
+        config = json.load(f)
 
     models = []
-
     # load google news word2vec
     # Load vectors directly from the file
     # models.append(
@@ -55,7 +69,12 @@ if __name__ == "__main__":
 
     # replicate fig. 3 with NYT dataset
 
-    direct = os.fsencode("../data/models/nytimes_news_articles_min100/")
+    # get embeddings trained on NYT with min freq of 100
+    direct = os.fsencode(
+        os.path.join(
+            config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
+        )
+    )
 
     for filename in os.listdir(direct):
         f = os.path.join(direct, filename)
@@ -66,8 +85,7 @@ if __name__ == "__main__":
             models.append(KeyedVectors.load(f))
 
     # get desired seeds:
-
-    seed = seedbank.seedbanking("../data/seeds/seeds.json")
+    seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json")
     seed.set_index("Seeds ID", inplace=True)
 
     gender_seed_list = [
@@ -127,6 +145,7 @@ if __name__ == "__main__":
         "himself",
         "his",
     ]
+    embed_a = [catch_keyerror(models, word) for word in list_a]
 
     list_b = [
         "likelihood",
@@ -136,9 +155,11 @@ if __name__ == "__main__":
         "setback",
         "photographed",
         "tales" "hood",
-        "danced",
         "gracia",
+        "danced",
     ]
+
+    embed_b = [catch_keyerror(models, word) for word in list_b]
 
     list_c = [
         "outcomes",
@@ -153,8 +174,6 @@ if __name__ == "__main__":
         "md",
     ]
 
-    embed_b = [catch_keyerror(models, word) for word in list_b]
-    embed_a = [catch_keyerror(models, word) for word in list_a]
     embed_c = [catch_keyerror(models, word) for word in list_c]
 
     sim = figure_4(

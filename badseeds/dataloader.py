@@ -1,12 +1,15 @@
+import argparse
 import os
-import torchtext
 import gzip
 import shutil
-import gdown
 from zipfile import ZipFile
 import requests
 import getopt
 import sys
+import json
+
+import torchtext
+import gdown
 
 
 def download_and_unzip(destination, out_file_path, file_id):
@@ -53,131 +56,193 @@ def unzip_folder(destination, out_file_path, file_id):
 
 
 if __name__ == "__main__":
-
-    # insure commandline arguments
-    if len(sys.argv) <= 1:
+    parser = argparse.ArgumentParser(description="Downloads and unzips the datasets")
+    parser.add_argument(
+        "-c",
+        "--config",
+        default="./config.json",
+        help="path to JSON config file outlying directory paths",
+        type=str,
+    )
+    parser.add_argument(
+        "-r",
+        "--raw",
+        action="store_true",
+        help="download raw data",
+        default=False,
+    )
+    parser.add_argument(
+        "-p",
+        "--preprocessed",
+        action="store_true",
+        help="download preprocessed data",
+        default=False,
+    )
+    parser.add_argument(
+        "-s",
+        "--seeds",
+        action="store_true",
+        help="download seeds",
+        default=False,
+    )
+    parser.add_argument(
+        "-m",
+        "--models",
+        action="store_true",
+        help="download pretrained model embeddings",
+        default=False,
+    )
+    parser.add_argument(
+        "-a",
+        "--all",
+        action="store_true",
+        help="download all datasets and models",
+        default=False,
+    )
+    # parse args
+    args = parser.parse_args()
+    # read config file
+    with open(args.config, "r") as f:
+        config = json.load(f)
+    # ensure at least one of the flags is set
+    if not (args.raw or args.preprocessed or args.seeds or args.models or args.all):
         print(
-            "Please specify with one of the following arguments to download: \n --raw \n --cleaned \n --seeds \n --pretrained \n"
+            "Please specify at least one of the following: --raw, --preprocessed, --seeds, --models, --all"
         )
-        exit(1)
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
-    # Remove 1st argument from the
-    # list of command line arguments
-    argumentList = sys.argv[1:]
+    if args.raw or args.all:
+        raw_path = config["raw"]["dir_path"]
+        # Create folder for data
+        if not os.path.isdir(raw_path):
+            os.makedirs(raw_path)
+            print("Created folder : ", raw_path)
+        # Download the WikiText dataset
+        wiki_path = os.path.join(raw_path, config["raw"]["wiki_subpath"])
+        if not os.path.isdir(wiki_path):
+            print("Downloading the WikiText103 dataset")
+            train, valid, test = torchtext.datasets.WikiText103(
+                root=wiki_path, split=("train", "valid", "test")
+            )
+            print("Finished downloading the WikiText103 dataset")
+        # Download the GoodReads History Biography dataset
+        gr_hb_path = os.path.join(raw_path, config["raw"]["goodreads_hb_subpath"])
+        destination = gr_hb_path + ".json.gz"
+        out_file_path = gr_hb_path + ".json"
+        file_id = "1lDkTzM6zpYU-HGkVAQgsw0dBzik-Zde9"
+        download_and_unzip(destination, out_file_path, file_id)
+        # Download the GoodReads Romance dataset
+        gr_r_path = os.path.join(raw_path, config["raw"]["goodreads_r_subpath"])
+        destination = gr_r_path + ".json.gz"
+        out_file_path = gr_r_path + ".json"
+        file_id = "1NpFsDQKBj_lrTzSASfyKbmkSykzN88wE"
+        download_and_unzip(destination, out_file_path, file_id)
+        # Download the NYT dataset
+        nyt_path = os.path.join(raw_path, config["raw"]["nyt_subpath"])
+        destination = nyt_path + ".txt.gz"
+        out_file_path = nyt_path + ".txt"
+        file_id = "1-2LL6wgTwDzTKfPx3RQrXi-LS6lraFYn"
+        download_and_unzip(destination, out_file_path, file_id)
 
-    # Options
-    options = "rcps:"
+    if args.seeds or args.all:
+        seeds_path = config["seeds"]["dir_path"]
+        # Create folder for seed data
+        if not os.path.isdir(seeds_path):
+            os.makedirs(seeds_path)
+            print("Created folder : ", seeds_path)
 
-    # Long options
-    long_options = ["raw", "cleaned", "seeds", "pretrained"]
+        # download seeds
+        receive = requests.get(
+            "https://raw.githubusercontent.com/maria-antoniak/bad-seeds/main/gathered_seeds.json"
+        )
+        # r_dictionary= r.json()
+        with open(os.path.join(seeds_path, "seeds.json"), "wb") as f:
+            f.write(receive.content)
+        print("Seeds are downloaded!")
 
-    try:
-        # Parsing argument
-        arguments, values = getopt.getopt(argumentList, options, long_options)
+    if args.preprocessed or args.all:
+        pproc_path = config["preprocessed"]["dir_path"]
+        if not os.path.isdir(pproc_path):
+            os.makedirs(pproc_path)
+            print("Created folder : ", pproc_path)
 
-        for currentArgument, currentValue in arguments:
+        # pproc_data
+        destination = os.path.join(pproc_path, "processed.zip")
+        out_file_path = pproc_path
+        file_id = "1-829_LhP213j5-Xthwnj-CAxz9VC3GTH"
+        unzip_folder(destination, out_file_path, file_id)
 
-            if currentArgument in ("-r", "--raw"):
+    if args.models or args.all:
+        models_path = config["models"]["dir_path"]
+        if not os.path.isdir(models_path):
+            os.makedirs(models_path)
+            print("Created folder : ", models_path)
 
-                # Create folder for data
-                if not os.path.isdir("../data/raw"):
-                    os.makedirs("../data/raw")
-                    print("Created folder : ", "../data/raw")
+        # Download the embeddings trained on the GoogleNews dataset
+        g_news_path = os.path.join(models_path, config["models"]["google_news_subpath"])
+        destination = g_news_path + ".bin.gz"
+        out_file_path = g_news_path + ".bin"
+        file_id = "0B7XkCwpI5KDYNlNUTTlSS21pQmM"
+        download_and_unzip(destination, out_file_path, file_id)
 
-                # Download the WikiText dataset
-                if not os.path.isdir("../data/WikiText103"):
-                    print("Downloading the WikiText103 dataset")
-                    train, valid, test = torchtext.datasets.WikiText103(
-                        root="../data", split=("train", "valid", "test")
-                    )
-                    print("Finished downloading the WikiText103 dataset")
+        # Download the embeddings trained on the NYT dataset
+        for i, file_id in zip(
+            [0, 10, 100],
+            [
+                "14eLHQ7oo1_V6DT8h_cd69-j4e-dF7Ymg",
+                "1JXzX0Egg0Hw8YpoQexc1qJG6KTK929jE",
+                "1LHdwfpvPKI02kYpzTqepMKkK3xOHEyXD",
+            ],
+        ):
+            nyt_path = os.path.join(
+                models_path, config["models"]["nyt_subpath"][str(i)]
+            )
+            destination = nyt_path + ".zip"
+            out_file_path = models_path
+            unzip_folder(destination, out_file_path, file_id)
 
-                # Download the GoodReads History Biography dataset
-                destination = "../data/raw/goodreads_reviews_history_biography.json.gz"
-                out_file_path = "../data/raw/goodreads_reviews_history_biography.json"
-                file_id = "1lDkTzM6zpYU-HGkVAQgsw0dBzik-Zde9"
-                download_and_unzip(destination, out_file_path, file_id)
+        # Download the embeddings trained on Goodreads history biography reviews
+        for i, file_id in zip(
+            [0, 10],
+            [
+                "1COecvAc3pjcIG7vpy6mGYTB28wc0gu4F",
+                "1yD3Q4dfWRfQIa6VSMwqgmKD5i91KoFEL",
+            ],
+        ):
+            history_biography_path = os.path.join(
+                models_path, config["models"]["goodreads_hb_subpath"][str(i)]
+            )
+            destination = history_biography_path + ".zip"
+            out_file_path = models_path
+            unzip_folder(destination, out_file_path, file_id)
 
-                # Download the GoodReads Romance dataset
-                destination = "../data/raw/goodreads_reviews_romance.json.gz"
-                out_file_path = "../data/raw/goodreads_reviews_romance.json"
-                file_id = "1NpFsDQKBj_lrTzSASfyKbmkSykzN88wE"
-                download_and_unzip(destination, out_file_path, file_id)
+        # Download the embeddings trained on Goodreads romance reviews
+        for i, file_id in zip(
+            [0, 10],
+            [
+                "1l1W9VKjmJVUtzE6dZYfgh0RzVRszYPPU",
+                "1LZOiQSWvl82qglCTZSp-nVurUmSO6qPj",
+            ],
+        ):
+            romance_path = os.path.join(
+                models_path, config["models"]["goodreads_r_subpath"][str(i)]
+            )
+            destination = romance_path + ".zip"
+            out_file_path = models_path
+            unzip_folder(destination, out_file_path, file_id)
 
-                # Download the GoogleNews dataset
-                destination = "../data/raw/GoogleNews-vectors-negative300.bin.gz"
-                out_file_path = "../data/raw/GoogleNews-vectors-negative300.bin"
-                file_id = "0B7XkCwpI5KDYNlNUTTlSS21pQmM"
-                download_and_unzip(destination, out_file_path, file_id)
-
-                # Download the NYT dataset
-                destination = "../data/raw/nytimes_news_articles.txt.gz"
-                out_file_path = "../data/raw/nytimes_news_articles.txt"
-                file_id = "1-2LL6wgTwDzTKfPx3RQrXi-LS6lraFYn"
-                download_and_unzip(destination, out_file_path, file_id)
-
-            if currentArgument in ("-s", "--seeds"):
-                # Create folder for seed data
-                if not os.path.isdir("../data/seeds"):
-                    os.makedirs("../data/seeds")
-                    print("Created folder : ", "../data/seeds")
-
-                # download seeds
-                receive = requests.get(
-                    "https://raw.githubusercontent.com/maria-antoniak/bad-seeds/main/gathered_seeds.json"
-                )
-                # r_dictionary= r.json()
-                with open(r"../data/seeds/seeds.json", "wb") as f:
-                    f.write(receive.content)
-                print("Seeds are downloaded!")
-
-            if currentArgument in ("-c", "--cleaned"):
-                # download cleaned data
-                if not os.path.isdir("../data/preprocessed_data"):
-                    os.makedirs("../data/preprocessed_data")
-                    print("Created folder : ", "../data/preprocessed_data")
-
-                # cleaned data
-                destination = "../data/preprocessed_data/processed.zip"
-                out_file_path = "../data/preprocessed_data/"
-                file_id = "1-829_LhP213j5-Xthwnj-CAxz9VC3GTH"
-                unzip_folder(destination, out_file_path, file_id)
-
-            if currentArgument in ("-p", "--pretrained"):
-                if not os.path.isdir("../data/models"):
-                    # download pretrained embeddings of unigram
-                    os.makedirs("../data/models")
-                    print("Created folder : ", "../data/models")
-
-                destination = "../data/models/history_biography_min10.zip"
-                out_file_path = "../data/models/"
-                file_id = "1yD3Q4dfWRfQIa6VSMwqgmKD5i91KoFEL"
-                unzip_folder(destination, out_file_path, file_id)
-
-                # Download the NYT dataset min frequency 10
-                destination = "../data/models/nytimes_news_articles_min10.zip"
-                out_file_path = "../data/models/"
-                file_id = "1JXzX0Egg0Hw8YpoQexc1qJG6KTK929jE"
-                unzip_folder(destination, out_file_path, file_id)
-
-                # Download the NYT dataset min frequency 100
-                destination = "../data/models/nytimes_news_articles_min100.zip"
-                out_file_path = "../data/models/"
-                file_id = "1LHdwfpvPKI02kYpzTqepMKkK3xOHEyXD"
-                unzip_folder(destination, out_file_path, file_id)
-
-                # Download the romance dataset
-                destination = "../data/models/romance_min10.zip"
-                out_file_path = "../data/models/"
-                file_id = "1LZOiQSWvl82qglCTZSp-nVurUmSO6qPj"
-                unzip_folder(destination, out_file_path, file_id)
-
-                # Download the wiki_train_tokens_min10 dataset
-                destination = "../data/models/wiki.train.tokens_min10.zip"
-                out_file_path = "../data/models/"
-                file_id = "1KNRsNnIdtic-kch8XzE3s0ukix6gt4Dp"
-                unzip_folder(destination, out_file_path, file_id)
-
-    except getopt.error as err:
-        # output error, and return with an error code
-        print(str(err))
+        # Download the embeddings trained on wikitext
+        for i, file_id in zip(
+            [0, 10],
+            [
+                "1Y4_dQE_tbXun2YSFHllePv4IrVPtOTJB",
+                "1KNRsNnIdtic-kch8XzE3s0ukix6gt4Dp",
+            ],
+        ):
+            wiki_path = os.path.join(
+                models_path, config["models"]["wiki_subpath"][str(i)]
+            )
+            destination = wiki_path + ".zip"
+            out_file_path = models_path
+            unzip_folder(destination, out_file_path, file_id)
