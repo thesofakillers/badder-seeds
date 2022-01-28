@@ -1,9 +1,11 @@
 """
-converts json seed file in sensible and structured format 
-resources: https://raw.githubusercontent.com/maria-antoniak/bad-seeds/main/gathered_seeds.json
+converts json seed file in sensible and structured format
+resources:
+    https://raw.githubusercontent.com/maria-antoniak/bad-seeds/main/gathered_seeds.json
 
 """
-import re
+import argparse
+import json
 import pandas as pd
 from sklearn import datasets
 
@@ -70,7 +72,7 @@ def seedbanking(dataset):
 
     Returns
     --------
-    seeds: Pandas DatatFrame
+    seeds: Pandas DataFrame
         ordered by category, DataFrame with seeds and meta information
     """
     seeds = pd.read_json(dataset)
@@ -81,7 +83,18 @@ def seedbanking(dataset):
 
 
 if __name__ == "__main__":
-    seeds = seedbanking("../data/seeds/seeds.json")
+    parser = argparse.ArgumentParser(description="displays seeds")
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="config JSON file containing path to seeds",
+        type=str,
+        default="./config.json",
+    )
+    args = parser.parse_args()
+    with open(args.config) as f:
+        config = json.load(f)
+    seeds = seedbanking(config["seeds"]["dir_path"] + "seeds.json")
     with pd.option_context(
         "display.max_rows",
         None,

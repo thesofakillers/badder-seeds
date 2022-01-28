@@ -11,6 +11,8 @@ Methods for Bias Measurement_ as part of the
 
 ### Setup
 
+#### Requirements
+
 For clearer specification of our setup, we make use of
 [Poetry](https://python-poetry.org/) to keep track of dependencies and python
 versions. Details such as python and package versions can be found in the
@@ -38,6 +40,10 @@ Finally, if neither of the above options are desired, we also provide a
 pip install -r requirements.txt
 ```
 
+#### Data and Models
+
+Users are strongly encouraged to read [DATA.md](DATA.md) before proceeding
+
 ### Repository Structure
 
 ```bash
@@ -47,6 +53,7 @@ pip install -r requirements.txt
 ├── notebooks # notebooks for reproduction, which import scripts
 │   └── results.ipynb
 ├── README.md # you are here
+├── DATA.md # documentation on data
 ├── environment.yml # if you are using conda
 ├── poetry.lock # handled by poetry
 ├── pyproject.toml # if you are using poetry
