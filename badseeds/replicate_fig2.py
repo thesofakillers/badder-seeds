@@ -15,6 +15,8 @@ import os
 from gensim.models import KeyedVectors
 from itertools import repeat
 import pandas as pd
+import argparse
+import json
 
 
 def figure_2(seeds, datasets):
@@ -48,7 +50,7 @@ def figure_2(seeds, datasets):
                         [
                             utils.catch_keyerror(model, word)
                             if utils.catch_keyerror(model, word) is not None
-                            else 0
+                            else np.zeros(100)
                             for word in seed
                         ]
                     )
@@ -57,6 +59,8 @@ def figure_2(seeds, datasets):
         avg_embeds_list = [[] for i in range(len(seeds))]
 
         for i in range(len(seeds)):
+            print((((embeds[i])[0])[0]).shape)
+            print(np.mean(embeds[i], axis=0).shape)
             avg_embeds_list[i].append(np.mean(embeds[i], axis=1))
 
         avg_unpleasent = np.mean(unpleasent, axis=0)
@@ -74,7 +78,22 @@ def figure_2(seeds, datasets):
 
 if __name__ == "__main__":
 
-    seeds = seedbank.seedbanking("../data/seeds/seeds.json")
+    parser = argparse.ArgumentParser(
+        description="Replicates figure 2 in Atoniak et al. (2021)"
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="path to config JSON file containing path to seeds",
+        default="config.json",
+        type=str,
+    )
+    args = parser.parse_args()
+    with open(args.config, "r") as f:
+        config = json.load(f)
+
+
+    seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json")
     seeds.set_index("Seeds ID", inplace=True)
     seed_sets = [
         "female-Kozlowski_et_al_2019",
@@ -90,13 +109,18 @@ if __name__ == "__main__":
     datasets = []
 
     filenames = [
-        "../data/models/history_biography_min10/",
-        "../data/models/romance_min10/",
+        "goodreads_r_subpath",
+        "goodreads_hb_subpath",
     ]
+
 
     for f in filenames:
         models = []
-        direct = os.fsencode(f)
+        direct = os.fsencode(
+            os.path.join(
+                config["models"]["dir_path"], config["models"][f]["0"]
+            )
+        )   
 
         for filename in os.listdir(direct):
             # print(filename)
@@ -105,7 +129,8 @@ if __name__ == "__main__":
             # checking if it is a file
             if os.path.isfile(f):
                 f = os.fsdecode(f)
-                models.append(KeyedVectors.load(f))
+                if '.npy' not in f:
+                    models.append(KeyedVectors.load(f))
 
         datasets.append(models)
 
