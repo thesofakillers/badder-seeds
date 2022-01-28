@@ -109,23 +109,33 @@ if __name__ == "__main__":
 
         datasets.append(models)
 
-    # print(extracted_seeds)
 
     similarity = figure_2(extracted_seeds, datasets)
 
+    for sim in similarity:
+        for i, j in zip(extracted_seeds, sim):
+            print(i, "\n")
+            print(j, "\n \n")
 
-    df1 = pd.DataFrame(zip(similarity[0], extracted_seeds), columns=["cosine", "seeds"])
-    df2 = pd.DataFrame(zip(similarity[0], extracted_seeds), columns=["cosine", "seeds"])
-     
-    #     for i, j in zip(extracted_seeds, sim):
-    #         print(i, "\n")
-    #         print(j, "\n \n")
-    print(df)
+
     # viz
+    df1 = pd.DataFrame(zip(similarity[0], seed_sets, ['history and biography']*len(seeds)), columns=["cosine similarity", "seed set", "dataset"])
+    df2 = pd.DataFrame(zip(similarity[1],  seed_sets, ['romance']*len(seeds)), columns=["cosine similarity",  "seed set", "dataset"])
+    
+    df = pd.concat([df1,df2])
+    df = df.explode('cosine similarity')
+    df['cosine similarity'] = df['cosine similarity'].astype('float')
 
     # Creating plot
     sns.set_theme(style="whitegrid")
-    ax = sns.boxplot(x="day", y="total_bill", hue="smoker", data=tips, palette="Set3")
+    fig, ax = plt.subplots()
+    ax1 = sns.boxplot(x="cosine similarity", y="seed set", hue="dataset", data=df, palette="Accent")
+    ax2 = sns.stripplot(x="cosine similarity", y="seed set", hue="dataset", data=df, jitter=True,
+              palette="Accent", dodge=True,linewidth=1,edgecolor='gray')
+    
+    legend = ax1.get_legend()
+    handles = legend.legendHandles
+    ax.legend(handles, ['history and biography', 'romance'])
 
     # show plot
-    ax.show()
+    plt.show()
