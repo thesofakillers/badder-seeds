@@ -115,9 +115,9 @@ def pca_seeds_model(
             variance_inshuffle.append(pca_ordered.components_)
 
         else:
-            variance_ordered[:, idx] = pca_ordered.explained_variance_ratio_
-            variance_rnd[:, idx] = pca_rnd.explained_variance_ratio_
-            variance_inshuffle[:, idx] = pca_inshuffle.explained_variance_ratio_
+            variance_ordered.append(pca_ordered.explained_variance_ratio_)
+            variance_rnd.append(pca_ordered.explained_variance_ratio_)
+            variance_inshuffle.append(pca_ordered.explained_variance_ratio_)
 
     # print(np.asarray(variance_ordered)[0])
     return (
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
     # replicate fig. 3 with NYT dataset
 
-    direct = os.fsencode("../models/nytimes_news_articles_preprocessed/")
+    direct = os.fsencode("../data/models/nytimes_news_articles_min10/")
 
     for filename in os.listdir(direct):
         print(filename)
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     # figure 3
 
     variance_ordered, variance_rnd, variance_inshuffle = pca_seeds_model(
-        seed1, seed2, models, seed1_shuf, seed2_shuf
+        seed1, seed2, models, seed1_shuf, seed2_shuf, components = True
     )
 
     # Visualization

@@ -42,6 +42,8 @@ def get_seeds(seeds, seed_list):
     -----------
     seed_list : list of strings
         list of seed IDs
+    seeds: pd DataFrame
+        dataframe with seeds, fetched via seedbanking
 
     Returns
     --------
