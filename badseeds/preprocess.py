@@ -35,15 +35,6 @@ def read_pproc_dataset(path):
     return doc_generator
 
 
-def byte_path_to_doc_list(bytes_path):
-    """
-    reads a binary file from a path, returning a list of Spacy Docs
-    """
-    doc_bin = DocBin(attrs=["TAG", "IS_ALPHA", "IS_DIGIT"]).from_disk(bytes_path)
-    doc_list = list(doc_bin.get_docs(nlp.vocab))
-    return doc_list
-
-
 def byte_data_to_docs(bytes_data):
     """
     Converts bytes data to a list of Spacy Docs
