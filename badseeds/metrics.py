@@ -154,13 +154,10 @@ def get_subspace_vec(
     # obtain bias subspace vector according to mode
     if mode == "weat":
         # bias subspace is just difference of average vector of seed set (see Caliskan 2017)
-        try:
-            vset1 = [embeddings[w] for w in set1]
-            vset2 = [embeddings[w] for w in set2]
-            mean1, mean2 = np.mean(vset1, axis=0), np.mean(vset2, axis=0)
-            bias_subspace_v = (mean1 - mean2).reshape(1, -1)
-        except KeyError:
-            print("KeyError")
+        vset1 = [embeddings[w] for w in set1]
+        vset2 = [embeddings[w] for w in set2]
+        mean1, mean2 = np.mean(vset1, axis=0), np.mean(vset2, axis=0)
+        bias_subspace_v = (mean1 - mean2).reshape(1, -1)
     elif mode == "pca":
         # bias subspace is first principal component of PCA
         pca_matrix = do_pca(set1, set2, embeddings, num_components=1)
@@ -212,7 +209,9 @@ def rank_by_cos_sim(
     cos_sim = cosine_similarity(matrix, bias_subspace_v).flatten()
 
     # argsort gets us a ranking of words by cosine similarity to bias subspace
-    cos_sim_rank = np.argsort(cos_sim, axis=0)[::-1]
+    cos_sim_rank = np.argsort(cos_sim, axis=0)
+    if order == "descending":
+        cos_sim_rank = cos_sim_rank[::-1]
 
     return cos_sim_rank, idx2w
 
