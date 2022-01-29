@@ -174,8 +174,7 @@ if __name__ == "__main__":
 
     # get desired seeds:
 
-    seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json")
-    seed.set_index("Seeds ID", inplace=True)
+    seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index = "ID")
 
     seed_genres = ["gender pairs", "social class pairs", "chinese-hispanic name pairs"]
 
