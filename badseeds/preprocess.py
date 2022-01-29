@@ -133,7 +133,7 @@ def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/process
     save_dir : str, optional
         path to the directory to save the preprocessed dataset, by default "../data/processed/"
     """
-    if os.path.isdir(f"../data/processed/{name}"):
+    if os.path.isdir(os.path.join(save_dir, name)):
         print(f"Skipping Goodreads {name} because it is already processed")
     else:
         if not os.path.isdir(os.path.join(save_dir, name)):
@@ -234,12 +234,52 @@ def preprocess_wiki(
             return byte_data_to_docbin(bytes_data)
 
 
-def preprocess_datasets():
+def preprocess_datasets(config_dict):
     """preprocesses all the datasets"""
-    preprocess_nyt()
-    preprocess_wiki()
-    preprocess_goodreads("romance")
-    preprocess_goodreads("history_biography")
+    preprocess_nyt(
+        os.path.join(config_dict["raw"]["dir_path"], config_dict["raw"]["nyt_subpath"])
+        + ".txt",
+        save_path=os.path.join(
+            config_dict["preprocessed"]["dir_path"],
+            "processed/",
+            config_dict["raw"]["nyt_subpath"] + ".bin",
+        ),
+    )
+    preprocess_wiki(
+        os.path.join(
+            config_dict["raw"]["dir_path"],
+            config_dict["raw"]["wiki_subpath"],
+            "wikitext-103",
+            "wiki.train.tokens",
+        ),
+        save_path=os.path.join(
+            config_dict["preprocessed"]["dir_path"],
+            "processed/",
+            "wiki.train.tokens" + ".bin",
+        ),
+    )
+    preprocess_goodreads(
+        "romance",
+        os.path.join(
+            config_dict["raw"]["dir_path"], config_dict["raw"]["goodreads_r_subpath"]
+        ),
+        save_path=os.path.join(
+            config_dict["preprocessed"]["dir_path"],
+            "processed/",
+            "goodreads_reviews_romance",
+        ),
+    )
+    preprocess_goodreads(
+        "history_biography",
+        os.path.join(
+            config_dict["raw"]["dir_path"], config_dict["raw"]["goodreads_hb_subpath"]
+        ),
+        save_path=os.path.join(
+            config_dict["preprocessed"]["dir_path"],
+            "processed/",
+            "goodreads_reviews_history_biography",
+        ),
+    )
 
 
 def read_pproc_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
@@ -272,4 +312,18 @@ def read_pproc_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
 
 
 if __name__ == "__main__":
-    preprocess_datasets()
+    parser = argparse.ArgumentParser(
+        description="Preprocesses the datasets for the model"
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="./config.json",
+        help="path to the config file",
+    )
+    args = parser.parse_args()
+
+    with open(args.config, "r") as f:
+        config = json.load(f)
+
+    preprocess_datasets(config)
