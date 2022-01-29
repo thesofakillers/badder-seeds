@@ -107,7 +107,10 @@ def catch_keyerror(models, word):
 
     """
     try:
-        return (models[0])[word]
+        if type(models) is list:
+            return (models[0])[word]
+        else:
+            return models[word]
     except KeyError as e:
         print(e)
         pass

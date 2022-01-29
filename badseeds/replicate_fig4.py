@@ -71,11 +71,12 @@ if __name__ == "__main__":
 
     # get embeddings trained on NYT with min freq of 100
     direct = os.fsencode(
-        os.path.join(config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"])
+        os.path.join(
+            config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
+        )
     )
 
     for filename in os.listdir(direct):
-        print(filename)
         f = os.path.join(direct, filename)
 
         # checking if it is a file
@@ -144,7 +145,6 @@ if __name__ == "__main__":
         "himself",
         "his",
     ]
-    embed_a = [catch_keyerror(models, word) for word in list_a]
 
     list_b = [
         "likelihood",
@@ -157,8 +157,6 @@ if __name__ == "__main__":
         "gracia",
         "danced",
     ]
-
-    embed_b = [catch_keyerror(models, word) for word in list_b]
 
     list_c = [
         "outcomes",
@@ -173,6 +171,8 @@ if __name__ == "__main__":
         "md",
     ]
 
+    embed_a = [catch_keyerror(models, word) for word in list_a]
+    embed_b = [catch_keyerror(models, word) for word in list_b]
     embed_c = [catch_keyerror(models, word) for word in list_c]
 
     sim = figure_4(
