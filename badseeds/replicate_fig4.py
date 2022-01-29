@@ -63,7 +63,11 @@ if __name__ == "__main__":
     # Load vectors directly from the file
     # models.append(
     #     KeyedVectors.load_word2vec_format(
-    #         "../data/GoogleNews-vectors-negative300.bin", binary=True
+    #         os.path.join(
+    #             config["models"]["dir_path"], config["models"]["google_news_subpath"]
+    #         )
+    #         + ".bin",
+    #         binary=True,
     #     )
     # )
 
