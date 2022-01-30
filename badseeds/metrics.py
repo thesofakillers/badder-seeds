@@ -2,8 +2,28 @@
 import numpy as np
 import numpy.typing as npt
 from sklearn.decomposition import PCA
-from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
+from sklearn.metrics.pairwise import cosine_similarity
 import gensim.models as gm
+
+
+def set_similarity(set_a, set_b):
+    """
+    Computes the cosine similarity between the mean vectors of two sets.
+
+    Parameters
+    ----------
+    set_a: array-like of strings
+        (N, D) array of word embeddings, constituting the first set.
+    set_b: array-like of strings
+        (N, D) array of word embeddings, constituting the second set.
+
+    Returns
+    -------
+    float
+        cosine similarity between the mean vectors of two sets.
+    """
+    # TODO
+    raise NotImplementedError
 
 
 def comp_assoc(
