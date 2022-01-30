@@ -4,7 +4,6 @@ import numpy.typing as npt
 from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
 import gensim.models as gm
-import pandas as pd
 
 
 def comp_assoc(
@@ -80,7 +79,8 @@ def calc_weat(
 def do_pca(seed1, seed2, embedding, num_components=10):
     """
     PCA metric as described in Bolukbasi et al. (2016).
-    original code base of the authors: https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
+    original code base of the authors:
+        https://github.com/tolga-b/debiaswe/blob/master/debiaswe/we.py
 
     Embeddings of bias word pairs are used to calculate the bias subspace.
     Number of words in each word set N.
@@ -102,8 +102,8 @@ def do_pca(seed1, seed2, embedding, num_components=10):
     Returns
     -------
     pca : matrix of floats
-        (num_components, B) matrix of floats, consitutes principle components of bias direction = bias subspace
-
+        (num_components, B) matrix of floats,
+        consitutes principle components of bias direction = bias subspace
     """
 
     matrix = []
@@ -136,14 +136,15 @@ def get_subspace_vec(
 
     Parameters
     ----------
-    embeddings : dictionary of strings mapped to array of floats or gensim KeyedVectors struct.
+    embeddings : dict or gensim.models.KeyedVectors
         word embedding vectors keyed by word.
     set1 : array-like of strings
         seed set 1, N seed words
     set2 : array-like of strings
         seed set 2, N seed words
     mode : string
-        Mode to use to extract bias subspace vector. Options are 'weat' and 'pca'. Default is 'weat'.
+        Mode to use to extract bias subspace vector.
+        Options are 'weat' and 'pca'. Default is 'weat'.
         With 'weat', bias subspace is difference of average vectors of seed sets
         With 'pca', bias subspace is first principal component of PCA of seed sets
 
@@ -155,7 +156,7 @@ def get_subspace_vec(
 
     # obtain bias subspace vector according to mode
     if mode == "weat":
-        # bias subspace is just difference of average vector of seed set (see Caliskan 2017)
+        # bias subspace is difference of average vector of seed set (Caliskan 2017)
         vset1 = [embeddings[w] for w in set1]
         vset2 = [embeddings[w] for w in set2]
         mean1, mean2 = np.mean(vset1, axis=0), np.mean(vset2, axis=0)
@@ -178,17 +179,19 @@ def rank_by_cos_sim(
 
     Parameters
     ----------
-    embeddings : dictionary of strings mapped to array of floats or gensim KeyedVectors struct.
+    embeddings : dict or gensim.models.KeyedVectors
         word embedding vectors keyed by word.
     bias_subspace_v : array-like of floats
         vector describing resulting bias subspace.
     order : string
-        Ordering of ranking. Options are 'descending' and 'ascending'. Default is 'descending'.
+        Ordering of ranking.
+        Options are 'descending' and 'ascending'. Default is 'descending'.
 
     Returns
     -------
     cos_sim_rank: array-like of ints
-        Argsort indeces that would sort the embeddings by similarity to bias subspace vector.
+        Argsort indeces that would sort the embeddings
+        by similarity to bias subspace vector.
     idx2w: list of strings
         List of words in vocab, indexed by idx, used to fetch word.
     """
@@ -229,14 +232,15 @@ def coherence(
 
     Parameters
     ----------
-    embeddings : dictionary of strings mapped to array of floats or gensim KeyedVectors struct.
+    embeddings : dict or gensim.models.KeyedVectors.
         word embedding vectors keyed by word.
     set1 : array-like of strings
         seed set 1, N seed words
     set2 : array-like of strings
         seed set 2, N seed words
     mode : string
-        Mode to use to extract bias subspace vector. Options are 'weat' and 'pca'. Default is 'weat'.
+        Mode to use to extract bias subspace vector.
+        Options are 'weat' and 'pca'. Default is 'weat'.
 
     Returns
     -------
@@ -248,7 +252,7 @@ def coherence(
     cos_sim_rank, idx2w = rank_by_cos_sim(embeddings, bias_subspace_v)
 
     # calculate mean rank of seed sets
-    cumulative_rank1, cumulative_rank2 = 0, 0
+    cumulative_rank1, cumulative_rank2 = 0.0, 0.0
     for rank, idx in enumerate(cos_sim_rank):
         if idx2w[idx] in set1:
             cumulative_rank1 += rank
