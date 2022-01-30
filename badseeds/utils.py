@@ -1,6 +1,5 @@
 import numpy as np
 from preprocess import read_pproc_dataset
-from metrics import *
 import gensim.models as gm
 
 

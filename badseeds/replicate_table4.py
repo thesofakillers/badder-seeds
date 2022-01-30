@@ -1,10 +1,13 @@
+import os
+
 from torch import cosine_similarity
-import utils, os
 import gensim.models as gm
-import seedbank
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
+
+import metrics
+import seedbank
 
 
 def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFrame:
@@ -24,7 +27,7 @@ def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFram
         for j in range(i + 1, seeds.shape[0]):
             if len(seeds.Seeds[i]) > 0 and len(seeds.Seeds[j]) > 0:
                 try:
-                    coh = utils.coherence(s, seeds.Seeds[i], seeds.Seeds[j])
+                    coh = metrics.coherence(s, seeds.Seeds[i], seeds.Seeds[j])
                 except:
                     # print("One of seeds not found in model.")
                     break

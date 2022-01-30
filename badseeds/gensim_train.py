@@ -1,9 +1,8 @@
 import gensim.models as gm
-from utils import *
+from utils import bootstrap
 from tqdm import tqdm
 import os
 import numpy as np
-from metrics import *
 
 
 def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
