@@ -12,10 +12,11 @@ import seedbank
 
 def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFrame:
     """
-    Builds a dataframe of coherence metrics for every possible pair of seed sets given embeddings
+    Builds a dataframe of coherence metrics
+    for every possible pair of seed sets given embeddings
     :param gm.KeyedVectors model: embeddings model
-    :param pd.Dataframe seeds: Dataframe of seed sets. Must have at least one column named "Seeds".
-    :returns dict results: dataframe of coherence metrics for every possible pair of seed sets
+    :param pd.Dataframe seeds: Dataframe of seed sets. Needs at least 1 "Seeds" column.
+    :returns dict results: dataframe of coher. metrics for every poss. pair of seed sets
     """
     results = {
         "Coherence": [],
@@ -27,7 +28,7 @@ def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFram
         for j in range(i + 1, seeds.shape[0]):
             if len(seeds.Seeds[i]) > 0 and len(seeds.Seeds[j]) > 0:
                 try:
-                    coh = metrics.coherence(s, seeds.Seeds[i], seeds.Seeds[j])
+                    coh = metrics.coherence(model, seeds.Seeds[i], seeds.Seeds[j])
                 except:
                     # print("One of seeds not found in model.")
                     break
@@ -63,9 +64,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--embeddings_dir",
         "-d",
-        default="models/nytimes_news_articles_min10",
+        default="data/models/nytimes_news_articles_min10",
         type=str,
-        help="Path to directory of embeddings. If relative path, relative to root directory. Default is NYT dataset embeddings.",
+        help="Path to directory of embeddings."
+        " If relative path, relative to root directory."
+        " Default is NYT dataset embeddings.",
     )
     args = parser.parse_args()
 
@@ -74,6 +77,9 @@ if __name__ == "__main__":
     for file in os.listdir(args.embeddings_dir):
         if file.endswith(".kv"):
             models.append(gm.KeyedVectors.load(os.path.join(args.embeddings_dir, file)))
+
+    if len(models) == 0:
+        raise ValueError("No embeddings found in directory.")
 
     # part 1: gathered seeds
     # load in all gathered seeds to memory, clean up
@@ -93,8 +99,8 @@ if __name__ == "__main__":
     # print(seeds[criterion])
 
     # get coherence numbers and normalize
-    for s in tqdm(models, unit="models"):
-        coh = build_row_table4(s, seeds)
+    for model in tqdm(models, unit="models"):
+        coh = build_row_table4(model, seeds)
         all_coherence.append(coh)
 
     # average coherence scores across seeds
