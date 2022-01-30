@@ -62,7 +62,7 @@ def get_seeds(seeds, seed_list):
     return extracted_seeds
 
 
-def seedbanking(dataset, index = None):
+def seedbanking(dataset, index=None):
     """
     loads .json as pandas DataFrame
 
@@ -70,7 +70,7 @@ def seedbanking(dataset, index = None):
     -----------
     dataset : string
         seed.json directory
-    index: string 
+    index: string
         can be indexed by seed id if needed
 
     Returns

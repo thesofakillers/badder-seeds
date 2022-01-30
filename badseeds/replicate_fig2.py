@@ -92,7 +92,7 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = json.load(f)
 
-    seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index = "ID")
+    seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index="ID")
     seed_sets = [
         "female-Kozlowski_et_al_2019",
         "female_1-Caliskan_et_al_2017",
