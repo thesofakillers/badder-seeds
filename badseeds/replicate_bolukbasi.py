@@ -151,11 +151,13 @@ if __name__ == "__main__":
     # Load vectors directly from the file
     # models.append(
     #     KeyedVectors.load_word2vec_format(
-    #         "../data/GoogleNews-vectors-negative300.bin", binary=True
+    #         os.path.join(
+    #             config["models"]["dir_path"], config["models"]["google_news_subpath"]
+    #         )
+    #         + ".bin",
+    #         binary=True,
     #     )
     # )
-
-    # replicate fig. 3 with NYT dataset
 
     direct = os.fsencode(
         os.path.join(
@@ -174,8 +176,7 @@ if __name__ == "__main__":
 
     # get desired seeds:
 
-    seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json")
-    seed.set_index("Seeds ID", inplace=True)
+    seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index = "ID")
 
     seed_genres = ["gender pairs", "social class pairs", "chinese-hispanic name pairs"]
 

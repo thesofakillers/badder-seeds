@@ -63,7 +63,11 @@ if __name__ == "__main__":
     # Load vectors directly from the file
     # models.append(
     #     KeyedVectors.load_word2vec_format(
-    #         "../data/GoogleNews-vectors-negative300.bin", binary=True
+    #         os.path.join(
+    #             config["models"]["dir_path"], config["models"]["google_news_subpath"]
+    #         )
+    #         + ".bin",
+    #         binary=True,
     #     )
     # )
 
@@ -85,8 +89,7 @@ if __name__ == "__main__":
             models.append(KeyedVectors.load(f))
 
     # get desired seeds:
-    seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json")
-    seed.set_index("Seeds ID", inplace=True)
+    seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index = "ID")
 
     gender_seed_list = [
         "definitional_female-Bolukbasi_et_al_2016",
