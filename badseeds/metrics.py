@@ -6,24 +6,34 @@ from sklearn.metrics.pairwise import cosine_similarity
 import gensim.models as gm
 
 
-def set_similarity(set_a, set_b):
+def set_similarity(set_a, set_b, allow_missing=True):
     """
     Computes the cosine similarity between the mean vectors of two sets.
 
     Parameters
     ----------
-    set_a: array-like of strings
+    set_a: array-like of float
         (N, D) array of word embeddings, constituting the first set.
-    set_b: array-like of strings
+    set_b: array-like of float
         (N, D) array of word embeddings, constituting the second set.
+    allow_missing: bool
+        indicates whether missing words are allowed in the set.
+        missing words indicated by array of NaN embeddings
 
     Returns
     -------
     float
         cosine similarity between the mean vectors of two sets.
     """
-    # TODO
-    raise NotImplementedError
+    if allow_missing:
+        mean_a = np.nanmean(set_a, axis=0)
+        mean_b = np.nanmean(set_b, axis=0)
+    else:
+        if np.isnan(set_a).any() or np.isnan(set_b).any():
+            raise ValueError("Sets cannot contain NaN embeddings")
+        mean_a = np.mean(set_a, axis=0)
+        mean_b = np.mean(set_b, axis=0)
+    return cosine_similarity(mean_a.reshape(1, -1), mean_b.reshape(1, -1))
 
 
 def comp_assoc(
