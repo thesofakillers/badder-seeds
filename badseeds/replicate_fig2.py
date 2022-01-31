@@ -42,7 +42,7 @@ def figure_2(seeds, datasets):
     for data in datasets:
         embeds = [[] for i in range(len(seeds))]
         for models in data:
-            u = utils.catch_keyerror(models, "unpleasant")
+            u = utils.catch_keyerror(models, "unpleasantness")
             unpleasent.append(np.asarray(u if u is not None else 0))
             for i, seed in enumerate(seeds):
                 embeds[i].append(
