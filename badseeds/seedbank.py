@@ -36,16 +36,19 @@ def clean(categories):
     return x
 
 
-def get_seeds(seeds, seed_list):
+def get_seeds(seeds, seed_list, id_loc="index"):
     """
     returns seed by seed id
 
     Parametrs
     -----------
-    seed_list : list of strings
-        list of seed IDs
     seeds: pd DataFrame
         dataframe with seeds, fetched via seedbanking
+    seed_list : list of strings
+        list of seed IDs
+    id_loc : string, default "index"
+        name of column containing seed IDs
+        if "index" then seeds.index is used
 
     Returns
     --------
@@ -53,16 +56,14 @@ def get_seeds(seeds, seed_list):
         list of seeds
 
     """
-    extracted_seeds = []
-
-    for seed in seed_list:
-        seed1 = seeds.loc[[seed], ["Seeds"]]
-        extracted_seeds.append(pd.eval(seed1.values[0])[0])
-
+    if id_loc == "index":
+        extracted_seeds = seeds.loc[seed_list, ["Seeds"]].values.tolist()
+    else:
+        extracted_seeds = seeds[seeds[id_loc].isin(seed_list)]["Seeds"].values.tolist()
     return extracted_seeds
 
 
-def seedbanking(dataset, index=None):
+def seedbanking(dataset, index=False):
     """
     loads .json as pandas DataFrame
 
@@ -70,8 +71,8 @@ def seedbanking(dataset, index=None):
     -----------
     dataset : string
         seed.json directory
-    index: string
-        can be indexed by seed id if needed
+    index: boolean, default False
+        whether to use "Seed ID" as index
 
     Returns
     --------
@@ -80,9 +81,9 @@ def seedbanking(dataset, index=None):
     """
     seeds = pd.read_json(dataset)
     seeds["Category"] = seeds["Category"].apply(clean)
-    seeds = seeds.sort_values(by="Category")
-
-    if index == "ID":
+    # convert string representation of list to list
+    seeds["Seeds"] = seeds["Seeds"].apply(eval)
+    if index:
         seeds.set_index("Seeds ID", inplace=True)
 
     return seeds
