@@ -16,7 +16,7 @@ def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFram
     for every possible pair of seed sets given embeddings
     :param gm.KeyedVectors model: embeddings model
     :param pd.Dataframe seeds: Dataframe of seed sets. Needs at least 1 "Seeds" column.
-    :returns dict results: dataframe of coher. metrics for every poss. pair of seed sets
+    :returns pd.DataFrame results: dataframe of coher. metrics for every poss. pair of seed sets
     """
     results = {
         "Coherence": [],
@@ -29,9 +29,9 @@ def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFram
             if len(seeds.Seeds[i]) > 0 and len(seeds.Seeds[j]) > 0:
                 try:
                     coh = metrics.coherence(model, seeds.Seeds[i], seeds.Seeds[j])
-                except:
+                except KeyError:
                     # print("One of seeds not found in model.")
-                    break
+                    continue
                 results["Coherence"].append(coh)
                 if "Category" in seeds.columns:
                     results["Gathered Set A"].append(
@@ -43,6 +43,48 @@ def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFram
                 else:
                     results["Gathered Set A"].append(str(seeds.Seeds[i]).strip())
                     results["Gathered Set B"].append(str(seeds.Seeds[j]).strip())
+    # normalize
+    results["Coherence"] /= np.max(results["Coherence"])
+
+    # make into df
+    results = pd.DataFrame(results)
+    return results
+
+
+def build_row_table4_window(
+    model: gm.KeyedVectors, seeds: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Builds a dataframe of coherence metrics with moving window as pairing method, given embeddings
+    :param gm.KeyedVectors model: embeddings model
+    :param pd.Dataframe seeds: Dataframe of seed sets. Needs at least 1 "Seeds" column.
+    :returns dict results: dataframe of coher. metrics for consecutive pairs of seed sets
+    """
+    results = {
+        "Coherence": [],
+        "Gathered Set A": [],
+        "Gathered Set B": [],
+    }
+
+    for i in range(seeds.shape[0] - 1):
+        j = i + 1
+        if len(seeds.Seeds[i]) > 0 and len(seeds.Seeds[j]) > 0:
+            try:
+                coh = metrics.coherence(model, seeds.Seeds[i], seeds.Seeds[j])
+            except:
+                # print("One of seeds not found in model.")
+                continue
+            results["Coherence"].append(coh)
+            if "Category" in seeds.columns:
+                results["Gathered Set A"].append(
+                    seeds.Category[i].upper() + ": " + str(seeds.Seeds[i]).strip()
+                )
+                results["Gathered Set B"].append(
+                    seeds.Category[j].upper() + ": " + str(seeds.Seeds[j]).strip()
+                )
+            else:
+                results["Gathered Set A"].append(str(seeds.Seeds[i]).strip())
+                results["Gathered Set B"].append(str(seeds.Seeds[j]).strip())
     # normalize
     results["Coherence"] /= np.max(results["Coherence"])
 
@@ -64,7 +106,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--embeddings_dir",
         "-d",
-        default="data/models/nytimes_news_articles_min10",
+        default="models/nytimes_news_articles_min0",
         type=str,
         help="Path to directory of embeddings."
         " If relative path, relative to root directory."
@@ -94,13 +136,9 @@ if __name__ == "__main__":
         lambda x: [] if len(x) == 1 and x[0] == "" else x
     )
 
-    # empty seed sets
-    # criterion = seeds.Seeds.map(lambda x: len(x) == 0)
-    # print(seeds[criterion])
-
     # get coherence numbers and normalize
     for model in tqdm(models, unit="models"):
-        coh = build_row_table4(model, seeds)
+        coh = build_row_table4_window(model, seeds)
         all_coherence.append(coh)
 
     # average coherence scores across seeds
