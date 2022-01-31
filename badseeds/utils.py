@@ -181,8 +181,8 @@ def generate_seed_set(
 
     Returns
     -------
-    float
-        Calculated coherence metric.
+    list
+        list of n + 1 seed words.
     """
 
     # randomly pick word that matches POS
