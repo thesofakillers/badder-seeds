@@ -1,5 +1,5 @@
 import numpy as np
-from .preprocess import read_pproc_dataset
+from preprocess import read_pproc_dataset
 import gensim.models as gm
 
 
@@ -237,9 +237,10 @@ def catch_keyerror(models, word):
     """
     try:
         if type(models) is list:
-            return (models[0])[word]
+            avg = [model[word] for model in models]
+            return np.mean(avg, axis = 0)
         else:
             return models[word]
     except KeyError as e:
         print(e)
-        pass
+        return None
