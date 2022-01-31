@@ -1,6 +1,7 @@
 import numpy as np
-from badseeds.preprocess import read_pproc_dataset
+from badseeds.preprocess import read_pproc_dataset, docbin_to_docs
 import gensim.models as gm
+import scipy.stats.stats as st
 
 
 def get_embeddings(word_list, models, query_strat="average"):
@@ -159,7 +160,7 @@ def bootstrap(dataset, n=20):
 
     print(type(x))
     bootstrap_samples = []
-    data = np.asarray(x)
+    data = np.asarray(list(docbin_to_docs(x)), dtype=object)
     length = len(data)
     for i in range(n):
         bootstrap_samples.append(np.random.choice(data, replace=True, size=length))
@@ -168,7 +169,7 @@ def bootstrap(dataset, n=20):
 
 
 def generate_seed_set(
-    embeddings, f: list[str] = ["NN", "NNP"], n: int = 4
+    embeddings, f: list[str] = ["NN", "NNS"], n: int = 4
 ) -> list[str]:
     """
     Generate random seed set.
@@ -178,14 +179,14 @@ def generate_seed_set(
     embeddings : dictionary of strings mapped to array of floats or gensim KeyedVectors struct.
         word embedding vectors keyed by word.
     f : list of strings
-        Only words with the following POS tags will be selected
+        Only words with the following POS tags will be selected. Default is only common nouns (singular and plural)
     mode : string
         Mode to use to extract bias subspace vector. Options are 'weat' and 'pca'. Default is 'weat'.
 
     Returns
     -------
-    float
-        Calculated coherence metric.
+    list
+        list of n + 1 seed words.
     """
 
     # randomly pick word that matches POS
@@ -240,9 +241,15 @@ def catch_keyerror(models, word):
     """
     try:
         if type(models) is list:
-            return (models[0])[word]
+            avg = [
+                catch_keyerror(model, word)
+                if catch_keyerror(model, word) is not None
+                else np.zeros((100))
+                for model in models
+            ]
+            return np.mean(avg, axis=0)
         else:
             return models[word]
     except KeyError as e:
         print(e)
-        pass
+        return None

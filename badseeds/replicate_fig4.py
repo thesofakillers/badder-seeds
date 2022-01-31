@@ -97,7 +97,8 @@ if __name__ == "__main__":
     ]
 
     # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
-    seed_list = seedbank.get_seeds(seed, gender_seed_list)
+
+    seed_list = [seed.loc[seed_set]['Seeds'] for seed_set in gender_seed_list]
     seed1 = [item.lower() for item in seed_list[0]]
     seed2 = [item.lower() for item in seed_list[1]]
 
@@ -177,6 +178,8 @@ if __name__ == "__main__":
     embed_a = [catch_keyerror(models, word) for word in list_a]
     embed_b = [catch_keyerror(models, word) for word in list_b]
     embed_c = [catch_keyerror(models, word) for word in list_c]
+
+    print(len(embed_a))
 
     sim = figure_4(
         variance_ordered, variance_rnd, variance_inshuffle, [embed_a, embed_b, embed_c]
