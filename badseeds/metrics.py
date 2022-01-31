@@ -106,6 +106,39 @@ def calc_weat(
     return weat_score
 
 
+def do_pca_embeddings(set_a, set_b, num_components=10):
+    """
+    Same as do_pca, but with already-embedded seeds.
+
+    Parameters
+    ----------
+    set_a : array-like of float
+        (N, D) array of word embeddings, constituting the first set of seeds.
+    set_b : array-like of float
+        (N, D) array of word embeddings, constituting the second set of seeds.
+    num_components : int, default 10
+        indicates number of principal components wanted for extraction
+
+    Returns
+    -------
+    pca : sklearn.decomposition.PCA
+        fitted PCA object
+    """
+    matrix = []
+    for emb_a, emb_b in zip(set_a, set_b):
+        if np.isnan(emb_a).any() or np.isnan(emb_b).any():
+            # skip this iteration if any of the embeddings are NaN
+            continue
+        center = (emb_a + emb_b) / 2
+        matrix.append(emb_a - center)
+        matrix.append(emb_b - center)
+    matrix = np.array(matrix)
+    pca = PCA(n_components=num_components)
+    pca.fit(matrix)
+
+    return pca
+
+
 def do_pca(seed1, seed2, embedding, num_components=10):
     """
     PCA metric as described in Bolukbasi et al. (2016).
@@ -118,22 +151,18 @@ def do_pca(seed1, seed2, embedding, num_components=10):
     Parameters
     ----------
     seed1 : array-like of strings
-        (10,1) array of strings,
-
-     seed2 : array-like of strings
-        (10,1) array of strings,
-
-    embedding : dictionary of strings mapped to array of floats
-        (N) string mapped to array of floats, maps word to its embedding
-
+        (N,) array of strings,
+    seed2 : array-like of strings
+        (N,) array of strings,
+    embedding : gensim.models.KeyedVectors
+        word embedding vectors keyed by word.
     num_components : int
         indicates number of principal components wanted for extraction
 
     Returns
     -------
-    pca : matrix of floats
-        (num_components, B) matrix of floats,
-        consitutes principle components of bias direction = bias subspace
+    pca : sklearn.decomposition.PCA
+        fitted PCA object
     """
 
     matrix = []
@@ -166,7 +195,7 @@ def get_subspace_vec(
 
     Parameters
     ----------
-    embeddings : dict or gensim.models.KeyedVectors
+    embeddings : gensim.models.KeyedVectors
         word embedding vectors keyed by word.
     set1 : array-like of strings
         seed set 1, N seed words
@@ -209,7 +238,7 @@ def rank_by_cos_sim(
 
     Parameters
     ----------
-    embeddings : dict or gensim.models.KeyedVectors
+    embeddings : gensim.models.KeyedVectors
         word embedding vectors keyed by word.
     bias_subspace_v : array-like of floats
         vector describing resulting bias subspace.
@@ -262,7 +291,7 @@ def coherence(
 
     Parameters
     ----------
-    embeddings : dict or gensim.models.KeyedVectors.
+    embeddings : gensim.models.KeyedVectors.
         word embedding vectors keyed by word.
     set1 : array-like of strings
         seed set 1, N seed words
