@@ -94,6 +94,7 @@ def seedbanking(dataset, index=False):
 
     # remove seed sets with only one element
     seeds = seeds[seeds["Seeds"].apply(len) > 1]
+    seeds.reset_index(inplace=True)
 
     return seeds
 
