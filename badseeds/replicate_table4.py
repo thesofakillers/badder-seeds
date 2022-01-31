@@ -133,7 +133,6 @@ if __name__ == "__main__":
         # load in all gathered seeds to memory, clean up
         all_coherence = []
         seeds = seedbank.seedbanking("data/seeds/seeds.json")
-        seeds = seeds.sort_index()
 
         # get coherence numbers
         for model in tqdm(models, unit="model"):
@@ -154,7 +153,8 @@ if __name__ == "__main__":
         # generate random seeds
         g_seeds = {
             "Seeds": [
-                utils.generate_seed_set(model) for model in random.choices(models, k=50)
+                utils.generate_seed_set(model)
+                for model in random.choices(models, k=100)
             ]
         }
         g_seeds = pd.DataFrame(g_seeds)
@@ -162,9 +162,7 @@ if __name__ == "__main__":
         # do coherence
         all_coherence = []
         for model in tqdm(models, unit="model"):
-            coh = build_row_table4(
-                model, g_seeds, pairing_method="all", seed_gen=args.mode
-            )
+            coh = build_row_table4(model, g_seeds, seed_gen=args.mode)
             all_coherence.append(coh)
 
         coh_avg = agg_coherence(all_coherence, seed_gen=args.mode)
