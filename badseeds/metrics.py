@@ -26,13 +26,13 @@ def set_similarity(set_a, set_b, allow_missing=True):
         cosine similarity between the mean vectors of two sets.
     """
     if allow_missing:
-        mean_a = np.nanmean(set_a, axis=0)
-        mean_b = np.nanmean(set_b, axis=0)
+        mean_a = np.nanmean(set_a, axis=-2)
+        mean_b = np.nanmean(set_b, axis=-2)
     else:
         if np.isnan(set_a).any() or np.isnan(set_b).any():
             raise ValueError("Sets cannot contain NaN embeddings")
-        mean_a = np.mean(set_a, axis=0)
-        mean_b = np.mean(set_b, axis=0)
+        mean_a = np.mean(set_a, axis=-2)
+        mean_b = np.mean(set_b, axis=-2)
     return cosine_similarity(mean_a.reshape(1, -1), mean_b.reshape(1, -1))
 
 
