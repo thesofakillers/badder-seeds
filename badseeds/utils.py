@@ -1,5 +1,5 @@
 import numpy as np
-from preprocess import read_pproc_dataset
+from preprocess import read_pproc_dataset, docbin_to_docs
 import gensim.models as gm
 import scipy.stats.stats as st
 
@@ -157,7 +157,7 @@ def bootstrap(dataset, n=20):
 
     print(type(x))
     bootstrap_samples = []
-    data = np.asarray(list(preprocess.docbin_to_docs(x)), dtype=object)
+    data = np.asarray(list(docbin_to_docs(x)), dtype=object)
     length = len(data)
     for i in range(n):
         bootstrap_samples.append(np.random.choice(data, replace=True, size=length))
