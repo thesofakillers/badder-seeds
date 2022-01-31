@@ -166,7 +166,7 @@ def bootstrap(dataset, n=20):
 
 
 def generate_seed_set(
-    embeddings, f: list[str] = ["NN", "NNP"], n: int = 4
+    embeddings, f: list[str] = ["NN", "NNS"], n: int = 4
 ) -> list[str]:
     """
     Generate random seed set.
@@ -176,7 +176,7 @@ def generate_seed_set(
     embeddings : dictionary of strings mapped to array of floats or gensim KeyedVectors struct.
         word embedding vectors keyed by word.
     f : list of strings
-        Only words with the following POS tags will be selected
+        Only words with the following POS tags will be selected. Default is only common nouns (singular and plural)
     mode : string
         Mode to use to extract bias subspace vector. Options are 'weat' and 'pca'. Default is 'weat'.
 

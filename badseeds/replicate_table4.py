@@ -104,7 +104,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--embeddings_dir",
         "-d",
-        default="models/nytimes_news_articles_min0",
+        default="models/nytimes_news_articles_min10",
         type=str,
         help="Path to directory of embeddings."
         " If relative path, relative to root directory."
@@ -152,7 +152,12 @@ if __name__ == "__main__":
         random.seed(42)
         # generate random seeds
         g_seeds = pd.DataFrame(
-            [utils.generate_seed_set(model) for model in random.choices(models, k=100)],
+            data=pd.Series(
+                [
+                    utils.generate_seed_set(model)
+                    for model in random.choices(models, k=100)
+                ]
+            ),
             columns=["Seeds"],
         )
 
