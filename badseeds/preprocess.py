@@ -120,7 +120,7 @@ def preprocess_nyt(
             return byte_data_to_docbin(bytes_data)
 
 
-def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/processed/"):
+def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/processed/", save_path=None):
     """
     Preprocesses Goodreads datasets
 
@@ -138,8 +138,8 @@ def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/process
     else:
         if not os.path.isdir(os.path.join(save_dir, name)):
             os.makedirs(os.path.join(save_dir, name))
-        path_to_file = os.path.join(path_to_dir, f"goodreads_reviews_{name}.json")
-        save_path = os.path.join(save_dir, f"/{name}/goodreads_reviews_{name}")
+        path_to_file = os.path.join(path_to_dir, f".json")
+        save_path = os.path.join(save_dir, f"/goodreads_reviews_{name}")
 
         with open(path_to_file, "r") as f:
             lines = f.readlines()
@@ -310,20 +310,3 @@ def read_pproc_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
         )
     return pproc_datasets
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Preprocesses the datasets for the model"
-    )
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="./config.json",
-        help="path to the config file",
-    )
-    args = parser.parse_args()
-
-    with open(args.config, "r") as f:
-        config = json.load(f)
-
-    preprocess_datasets(config)

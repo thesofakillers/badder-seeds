@@ -12,114 +12,60 @@ import torchtext
 import gdown
 
 
-def download_and_unzip(destination, out_file_path, file_id):
+class LoadTheData:
+    def __init__(self, config):
+        self.config = config
 
-    name = destination.split(".")[-3]
-    if not os.path.isfile(destination):
-        url = "https://drive.google.com/uc?id=" + file_id
-        gdown.download(url, destination, quiet=False)
+    def download_and_unzip(self, destination, out_file_path, file_id):
+        name = destination.split(".")[-3]
+        if not os.path.isfile(destination):
+            url = "https://drive.google.com/uc?id=" + file_id
+            gdown.download(url, destination, quiet=False)
 
-    if not os.path.isfile(out_file_path):
-        print(f"Unzipping the {name} dataset")
+        if not os.path.isfile(out_file_path):
+            print(f"Unzipping the {name} dataset")
 
-        extension = destination.split(".")[-1]
-        if extension == "gz":
-            with gzip.open(destination, "rb") as f_in:
-                with open(out_file_path, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-            print(f"Finished unzipping the {name} dataset")
+            extension = destination.split(".")[-1]
+            if extension == "gz":
+                with gzip.open(destination, "rb") as f_in:
+                    with open(out_file_path, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                print(f"Finished unzipping the {name} dataset")
 
-        elif extension == "zip":
-            with ZipFile(destination, "r") as f_in:
-                with open(out_file_path, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-            print(f"Finished unzipping the {name} dataset")
+            elif extension == "zip":
+                with ZipFile(destination, "r") as f_in:
+                    with open(out_file_path, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                print(f"Finished unzipping the {name} dataset")
 
-        else:
-            raise ValueError("Extension not supported yet")
-
-
-def unzip_folder(destination, out_file_path, file_id):
-    name = destination.split(".")[-3]
-    if not os.path.isfile(destination):
-        url = "https://drive.google.com/uc?id=" + file_id
-        gdown.download(url, destination, quiet=False)
-
-    if not os.path.isfile(out_file_path):
-        print(f"Unzipping the {name} dataset")
-
-        extension = destination.split(".")[-1]
-        with ZipFile(destination, "r") as zip:
-            print("Extracting all the files now...")
-            zip.extractall(out_file_path)
-            print(f"Finished unzipping the {destination} dataset")
+            else:
+                raise ValueError("Extension not supported yet")
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Downloads and unzips the datasets")
-    parser.add_argument(
-        "-c",
-        "--config",
-        default="./config.json",
-        help="path to JSON config file outlying directory paths",
-        type=str,
-    )
-    parser.add_argument(
-        "-r",
-        "--raw",
-        action="store_true",
-        help="download raw data",
-        default=False,
-    )
-    parser.add_argument(
-        "-p",
-        "--preprocessed",
-        action="store_true",
-        help="download preprocessed data",
-        default=False,
-    )
-    parser.add_argument(
-        "-s",
-        "--seeds",
-        action="store_true",
-        help="download seeds",
-        default=False,
-    )
-    parser.add_argument(
-        "-m",
-        "--models",
-        action="store_true",
-        help="download pretrained model embeddings",
-        default=False,
-    )
-    parser.add_argument(
-        "-a",
-        "--all",
-        action="store_true",
-        help="download all datasets and models",
-        default=False,
-    )
-    # parse args
-    args = parser.parse_args()
-    # read config file
-    with open(args.config, "r") as f:
-        config = json.load(f)
-    # ensure at least one of the flags is set
-    if not (args.raw or args.preprocessed or args.seeds or args.models or args.all):
-        print(
-            "Please specify at least one of the following: --raw, --preprocessed, --seeds, --models, --all"
-        )
-        parser.print_help(sys.stderr)
-        sys.exit(1)
+    def unzip_folder(self, destination, out_file_path, file_id):
+        name = destination.split(".")[-3]
+        if not os.path.isfile(destination):
+            url = "https://drive.google.com/uc?id=" + file_id
+            gdown.download(url, destination, quiet=False)
 
-    if args.raw or args.all:
-        raw_path = config["raw"]["dir_path"]
+        if not os.path.isfile(out_file_path):
+            print(f"Unzipping the {name} dataset")
+
+            extension = destination.split(".")[-1]
+            with ZipFile(destination, "r") as zip:
+                print("Extracting all the files now...")
+                zip.extractall(out_file_path)
+                print(f"Finished unzipping the {destination} dataset")
+
+
+    def download_raw(self):
+        raw_path = self.config["raw"]["dir_path"]
         # Create folder for data
         if not os.path.isdir(raw_path):
             os.makedirs(raw_path)
             print("Created folder : ", raw_path)
         # Download the WikiText dataset
-        wiki_path = os.path.join(raw_path, config["raw"]["wiki_subpath"])
+        wiki_path = os.path.join(raw_path, self.config["raw"]["wiki_subpath"])
         if not os.path.isdir(wiki_path):
             print("Downloading the WikiText103 dataset")
             train, valid, test = torchtext.datasets.WikiText103(
@@ -127,26 +73,26 @@ if __name__ == "__main__":
             )
             print("Finished downloading the WikiText103 dataset")
         # Download the GoodReads History Biography dataset
-        gr_hb_path = os.path.join(raw_path, config["raw"]["goodreads_hb_subpath"])
+        gr_hb_path = os.path.join(raw_path, self.config["raw"]["goodreads_hb_subpath"])
         destination = gr_hb_path + ".json.gz"
         out_file_path = gr_hb_path + ".json"
         file_id = "1lDkTzM6zpYU-HGkVAQgsw0dBzik-Zde9"
-        download_and_unzip(destination, out_file_path, file_id)
+        self.download_and_unzip(destination, out_file_path, file_id)
         # Download the GoodReads Romance dataset
-        gr_r_path = os.path.join(raw_path, config["raw"]["goodreads_r_subpath"])
+        gr_r_path = os.path.join(raw_path, self.config["raw"]["goodreads_r_subpath"])
         destination = gr_r_path + ".json.gz"
         out_file_path = gr_r_path + ".json"
         file_id = "1NpFsDQKBj_lrTzSASfyKbmkSykzN88wE"
-        download_and_unzip(destination, out_file_path, file_id)
+        self.download_and_unzip(destination, out_file_path, file_id)
         # Download the NYT dataset
-        nyt_path = os.path.join(raw_path, config["raw"]["nyt_subpath"])
+        nyt_path = os.path.join(raw_path, self.config["raw"]["nyt_subpath"])
         destination = nyt_path + ".txt.gz"
         out_file_path = nyt_path + ".txt"
         file_id = "1-2LL6wgTwDzTKfPx3RQrXi-LS6lraFYn"
-        download_and_unzip(destination, out_file_path, file_id)
+        self.download_and_unzip(destination, out_file_path, file_id)
 
-    if args.seeds or args.all:
-        seeds_path = config["seeds"]["dir_path"]
+    def download_seeds(self):
+        seeds_path = self.config["seeds"]["dir_path"]
         # Create folder for seed data
         if not os.path.isdir(seeds_path):
             os.makedirs(seeds_path)
@@ -161,8 +107,9 @@ if __name__ == "__main__":
             f.write(receive.content)
         print("Seeds are downloaded!")
 
-    if args.preprocessed or args.all:
-        pproc_path = config["preprocessed"]["dir_path"]
+
+    def download_preprocessed(self):
+        pproc_path = self.config["preprocessed"]["dir_path"]
         if not os.path.isdir(pproc_path):
             os.makedirs(pproc_path)
             print("Created folder : ", pproc_path)
@@ -171,20 +118,21 @@ if __name__ == "__main__":
         destination = os.path.join(pproc_path, "processed.zip")
         out_file_path = pproc_path
         file_id = "1-829_LhP213j5-Xthwnj-CAxz9VC3GTH"
-        unzip_folder(destination, out_file_path, file_id)
+        self.unzip_folder(destination, out_file_path, file_id)
 
-    if args.models or args.all:
-        models_path = config["models"]["dir_path"]
+
+    def download_models(self):
+        models_path = self.config["models"]["dir_path"]
         if not os.path.isdir(models_path):
             os.makedirs(models_path)
             print("Created folder : ", models_path)
 
         # Download the embeddings trained on the GoogleNews dataset
-        g_news_path = os.path.join(models_path, config["models"]["google_news_subpath"])
+        g_news_path = os.path.join(models_path, self.config["models"]["google_news_subpath"])
         destination = g_news_path + ".bin.gz"
         out_file_path = g_news_path + ".bin"
         file_id = "0B7XkCwpI5KDYNlNUTTlSS21pQmM"
-        download_and_unzip(destination, out_file_path, file_id)
+        self.download_and_unzip(destination, out_file_path, file_id)
 
         # Download the embeddings trained on the NYT dataset
         for i, file_id in zip(
@@ -196,11 +144,11 @@ if __name__ == "__main__":
             ],
         ):
             nyt_path = os.path.join(
-                models_path, config["models"]["nyt_subpath"][str(i)]
+                models_path, self.config["models"]["nyt_subpath"][str(i)]
             )
             destination = nyt_path + ".zip"
             out_file_path = models_path
-            unzip_folder(destination, out_file_path, file_id)
+            self.unzip_folder(destination, out_file_path, file_id)
 
         # Download the embeddings trained on Goodreads history biography reviews
         for i, file_id in zip(
@@ -211,11 +159,11 @@ if __name__ == "__main__":
             ],
         ):
             history_biography_path = os.path.join(
-                models_path, config["models"]["goodreads_hb_subpath"][str(i)]
+                models_path, self.config["models"]["goodreads_hb_subpath"][str(i)]
             )
             destination = history_biography_path + ".zip"
             out_file_path = models_path
-            unzip_folder(destination, out_file_path, file_id)
+            self.unzip_folder(destination, out_file_path, file_id)
 
         # Download the embeddings trained on Goodreads romance reviews
         for i, file_id in zip(
@@ -226,11 +174,11 @@ if __name__ == "__main__":
             ],
         ):
             romance_path = os.path.join(
-                models_path, config["models"]["goodreads_r_subpath"][str(i)]
+                models_path, self.config["models"]["goodreads_r_subpath"][str(i)]
             )
             destination = romance_path + ".zip"
             out_file_path = models_path
-            unzip_folder(destination, out_file_path, file_id)
+            self.unzip_folder(destination, out_file_path, file_id)
 
         # Download the embeddings trained on wikitext
         for i, file_id in zip(
@@ -241,8 +189,15 @@ if __name__ == "__main__":
             ],
         ):
             wiki_path = os.path.join(
-                models_path, config["models"]["wiki_subpath"][str(i)]
+                models_path, self.config["models"]["wiki_subpath"][str(i)]
             )
             destination = wiki_path + ".zip"
             out_file_path = models_path
-            unzip_folder(destination, out_file_path, file_id)
+            self.unzip_folder(destination, out_file_path, file_id)
+
+
+    def download_all(self):
+        self.download_raw()
+        self.download_seeds()
+        self.download_preprocessed()
+        self.download_models()
