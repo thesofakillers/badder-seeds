@@ -1,7 +1,7 @@
 import numpy as np
 from preprocess import read_pproc_dataset
 import gensim.models as gm
-import preprocess
+import scipy.stats.stats as st
 
 
 def get_embeddings(word_list, models, query_strat="average"):
@@ -238,9 +238,15 @@ def catch_keyerror(models, word):
     """
     try:
         if type(models) is list:
-            return (models[0])[word]
+            avg = [
+                catch_keyerror(model, word)
+                if catch_keyerror(model, word) is not None
+                else np.zeros((100))
+                for model in models
+            ]
+            return np.mean(avg, axis=0)
         else:
             return models[word]
     except KeyError as e:
         print(e)
-        pass
+        return None
