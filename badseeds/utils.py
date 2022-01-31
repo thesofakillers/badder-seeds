@@ -1,5 +1,5 @@
 import numpy as np
-from .preprocess import read_pproc_dataset
+from preprocess import read_pproc_dataset
 import gensim.models as gm
 
 
