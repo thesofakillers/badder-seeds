@@ -62,7 +62,7 @@ def build_row_table4(
     }
     for i in range(seeds.shape[0]):
         if pairing_method == "window":
-            lim = i + 2
+            lim = min(i + 2, seeds.shape[0])
         else:
             lim = seeds.shape[0]
         for j in range(i + 1, lim):
@@ -151,13 +151,10 @@ if __name__ == "__main__":
         np.random.seed(42)
         random.seed(42)
         # generate random seeds
-        g_seeds = {
-            "Seeds": [
-                utils.generate_seed_set(model)
-                for model in random.choices(models, k=100)
-            ]
-        }
-        g_seeds = pd.DataFrame(g_seeds)
+        g_seeds = pd.DataFrame(
+            [utils.generate_seed_set(model) for model in random.choices(models, k=100)],
+            columns=["Seeds"],
+        )
 
         # do coherence
         all_coherence = []
