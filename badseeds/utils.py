@@ -1,6 +1,7 @@
 import numpy as np
 from preprocess import read_pproc_dataset
 import gensim.models as gm
+import preprocess
 
 
 def get_embeddings(word_list, models, query_strat="average"):
@@ -156,7 +157,7 @@ def bootstrap(dataset, n=20):
 
     print(type(x))
     bootstrap_samples = []
-    data = np.asarray(x)
+    data = np.asarray(list(preprocess.docbin_to_docs(x)), dtype=object)
     length = len(data)
     for i in range(n):
         bootstrap_samples.append(np.random.choice(data, replace=True, size=length))
