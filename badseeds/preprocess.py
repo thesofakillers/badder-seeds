@@ -74,6 +74,7 @@ def spacy_and_save(documents, path):
     and POS tagging, then saves efficiently to binary file
     """
     bytes_data = run_spacy_pipe(documents)
+    print(path)
     with open(path, "wb") as f:
         f.write(bytes_data)
 
@@ -120,7 +121,7 @@ def preprocess_nyt(
             return byte_data_to_docbin(bytes_data)
 
 
-def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/processed/", save_path=None):
+def preprocess_goodreads(name, path_to_dir="../data/", save_dir="./data/preprocessed_data/", save_path=None):
     """
     Preprocesses Goodreads datasets
 
@@ -138,8 +139,8 @@ def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/process
     else:
         if not os.path.isdir(os.path.join(save_dir, name)):
             os.makedirs(os.path.join(save_dir, name))
-        path_to_file = os.path.join(path_to_dir, f".json")
-        save_path = os.path.join(save_dir, f"/goodreads_reviews_{name}")
+        path_to_file = path_to_dir + ".json"
+        save_path = save_dir + name
 
         with open(path_to_file, "r") as f:
             lines = f.readlines()
@@ -181,13 +182,13 @@ def preprocess_goodreads(name, path_to_dir="../data/", save_dir="../data/process
                 documents.append(document)
 
             if index != 0 and index % 500000 == 0 or index == len(lines) - 1:
-                current_save_path = save_path + f"_{index}.bin"
+                current_save_path = save_path + f"/goodreads_reviews_{name}_{index}.bin"
                 spacy_and_save(documents, current_save_path)
                 documents = []
 
 
 def preprocess_wiki(
-    path_to_file="../data/WikiText103/wikitext-103/wiki.train.tokens",
+    path_to_file="../data/WikiText103/WikiText103/wikitext-103/wiki.train.tokens",
     save_path="../data/processed/wiki.train.tokens.bin",
     serialize=True,
     return_memory=False,
@@ -235,13 +236,14 @@ def preprocess_wiki(
 
 
 def preprocess_datasets(config_dict):
+    if not os.path.isdir(config_dict['preprocessed']['dir_path']):
+        os.makedirs(config_dict['preprocessed']['dir_path'])
     """preprocesses all the datasets"""
     preprocess_nyt(
         os.path.join(config_dict["raw"]["dir_path"], config_dict["raw"]["nyt_subpath"])
         + ".txt",
         save_path=os.path.join(
             config_dict["preprocessed"]["dir_path"],
-            "processed/",
             config_dict["raw"]["nyt_subpath"] + ".bin",
         ),
     )
@@ -254,7 +256,6 @@ def preprocess_datasets(config_dict):
         ),
         save_path=os.path.join(
             config_dict["preprocessed"]["dir_path"],
-            "processed/",
             "wiki.train.tokens" + ".bin",
         ),
     )
@@ -265,7 +266,6 @@ def preprocess_datasets(config_dict):
         ),
         save_path=os.path.join(
             config_dict["preprocessed"]["dir_path"],
-            "processed/",
             "goodreads_reviews_romance",
         ),
     )
@@ -276,7 +276,6 @@ def preprocess_datasets(config_dict):
         ),
         save_path=os.path.join(
             config_dict["preprocessed"]["dir_path"],
-            "processed/",
             "goodreads_reviews_history_biography",
         ),
     )
