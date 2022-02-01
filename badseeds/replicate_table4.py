@@ -18,7 +18,7 @@ def agg_coherence(all_coh, seed_gen="gathered"):
     else:
         prefix = "Generated"
 
-    # average coherence scores across seeds
+    # average coherence scores across models
     coh_con = pd.concat(all_coh)
     coh_avg = coh_con.groupby([prefix + " Set A", prefix + " Set B"]).agg(
         {"Coherence": ["mean"]}
@@ -155,7 +155,7 @@ if __name__ == "__main__":
             data=pd.Series(
                 [
                     utils.generate_seed_set(model)
-                    for model in random.choices(models, k=100)
+                    for model in random.choices(models, k=50)
                 ]
             ),
             columns=["Seeds"],
@@ -164,7 +164,9 @@ if __name__ == "__main__":
         # do coherence
         all_coherence = []
         for model in tqdm(models, unit="model"):
-            coh = build_row_table4(model, g_seeds, seed_gen=args.mode)
+            coh = build_row_table4(
+                model, g_seeds, pairing_method="all", seed_gen=args.mode
+            )
             all_coherence.append(coh)
 
         coh_avg = agg_coherence(all_coherence, seed_gen=args.mode)
