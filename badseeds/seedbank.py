@@ -8,6 +8,7 @@ import argparse
 import json
 import pandas as pd
 from sklearn import datasets
+import os
 
 
 def clean(categories):
@@ -82,9 +83,18 @@ def seedbanking(dataset, index=False):
     seeds = pd.read_json(dataset)
     seeds["Category"] = seeds["Category"].apply(clean)
     # convert string representation of list to list
-    seeds["Seeds"] = seeds["Seeds"].apply(eval)
+    seeds["Seeds"] = seeds["Seeds"].apply(lambda x: eval(clean(x)))
     if index:
         seeds.set_index("Seeds ID", inplace=True)
+
+    # remove bigrams in seed sets
+    seeds["Seeds"] = seeds["Seeds"].apply(
+        lambda x: [i for i in x if len(i.split()) == 1]
+    )
+
+    # remove seed sets with only one element
+    seeds = seeds[seeds["Seeds"].apply(len) > 1]
+    seeds.reset_index(inplace=True)
 
     return seeds
 
@@ -98,13 +108,19 @@ if __name__ == "__main__":
         type=str,
         default="./config.json",
     )
+
+    fdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(fdir)
+
     args = parser.parse_args()
     with open(args.config) as f:
         config = json.load(f)
     seeds = seedbanking(config["seeds"]["dir_path"] + "seeds.json")
     with pd.option_context(
         "display.max_rows",
-        None,
+        20,
+        "display.max_columns",
+        3,
         "display.precision",
         3,
     ):

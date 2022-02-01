@@ -301,7 +301,7 @@ if __name__ == "__main__":
     for idx, ax in enumerate(axes):
 
         # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
-        seed_lists = seedbank.get_seeds(seed, seed_list[idx])
+        seed_lists = [seed.loc[seed_set]["Seeds"] for seed_set in seed_list[idx]]
         seed1 = [item.lower() for item in seed_lists[0]]
         seed2 = [item.lower() for item in seed_lists[1]]
 

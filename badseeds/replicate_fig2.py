@@ -41,35 +41,30 @@ def figure_2(seeds, datasets):
 
     for data in datasets:
         embeds = [[] for i in range(len(seeds))]
-        for model in data:
-            u = utils.catch_keyerror(model, "unpleasantness")
+        for models in data:
+            u = utils.catch_keyerror(models, "unpleasantness")
             unpleasent.append(np.asarray(u if u is not None else 0))
             for i, seed in enumerate(seeds):
                 embeds[i].append(
                     np.asarray(
                         [
-                            utils.catch_keyerror(model, word)
-                            if utils.catch_keyerror(model, word) is not None
-                            else np.zeros(100)
+                            utils.catch_keyerror(models, word)
+                            if utils.catch_keyerror(models, word) is not None
+                            else np.zeros((1,100))
                             for word in seed
                         ]
                     )
                 )
 
-        avg_embeds_list = [[] for i in range(len(seeds))]
-
-        for i in range(len(seeds)):
-            print((((embeds[i])[0])[0]).shape)
-            print(np.mean(embeds[i], axis=0).shape)
-            avg_embeds_list[i].append(np.mean(embeds[i], axis=1))
-
         avg_unpleasent = np.mean(unpleasent, axis=0)
 
         s = []
-        for per_seed in avg_embeds_list:
+        for per_seed in embeds:
             temp = []
             for idx, seed in enumerate(per_seed[0]):
-                temp.append(cosine_similarity([seed], [avg_unpleasent.T])[0])
+                if seed.ndim < 2:
+                    seed = seed.reshape(1,-1)
+                temp.append(cosine_similarity(seed, [avg_unpleasent.T])[0])
             s.append(np.asarray(temp).flatten())
         similarity.append(s)
 
@@ -92,7 +87,19 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = json.load(f)
 
-    seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index="ID")
+    seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index = True)
+    
+
+    seed_sets = [
+        "black-Manzini_et_al_2019",
+        "black_roles-Manzini_et_al_2019",
+        "black-Kozlowski_et_al_2019",
+        "black-Rudinger_et_al_2017",
+        # "female_definition_words_2-Zhao_et_al_2018",
+        # "female_stereotype_words-Zhao_et_al_2018",
+    ]
+
+
     seed_sets = [
         "female-Kozlowski_et_al_2019",
         "female_1-Caliskan_et_al_2017",
@@ -101,7 +108,9 @@ if __name__ == "__main__":
         "female_definition_words_2-Zhao_et_al_2018",
         "female_stereotype_words-Zhao_et_al_2018",
     ]
-    extracted_seeds = seedbank.get_seeds(seeds, seed_sets)
+
+    extracted_seeds = [seeds.loc[seed_set]['Seeds'] for seed_set in seed_sets]
+
     # seed = [item.lower() for item in seed_list[0]]
 
     datasets = []

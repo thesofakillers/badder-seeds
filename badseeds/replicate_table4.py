@@ -1,37 +1,77 @@
 import os
 
-from torch import cosine_similarity
 import gensim.models as gm
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
+import utils
+import random
 
 import metrics
 import seedbank
 
 
-def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFrame:
+def agg_coherence(all_coh, seed_gen="gathered"):
+
+    if seed_gen == "gathered":
+        prefix = "Gathered"
+    else:
+        prefix = "Generated"
+
+    # average coherence scores across seeds
+    coh_con = pd.concat(all_coh)
+    coh_avg = coh_con.groupby([prefix + " Set A", prefix + " Set B"]).agg(
+        {"Coherence": ["mean"]}
+    )
+    coh_avg.columns = ["Coherence"]
+    coh_avg = coh_avg.reset_index()
+
+    # sort and display
+    coh_avg = coh_avg[["Coherence", prefix + " Set A", prefix + " Set B"]]
+    coh_avg = coh_avg.sort_values(by="Coherence", ascending=False)
+    coh_avg.Coherence = coh_avg.Coherence.round(3)
+
+    return coh_avg
+
+
+def build_row_table4(
+    model: gm.KeyedVectors,
+    seeds: pd.DataFrame,
+    pairing_method: str = "window",
+    seed_gen: str = "gathered",
+) -> pd.DataFrame:
     """
     Builds a dataframe of coherence metrics
     for every possible pair of seed sets given embeddings
     :param gm.KeyedVectors model: embeddings model
     :param pd.Dataframe seeds: Dataframe of seed sets. Needs at least 1 "Seeds" column.
-    :returns dict results: dataframe of coher. metrics for every poss. pair of seed sets
+    :param str pairing_method: pairing method to use.
+        'window' for moving window, 'all' for all possible pairs
+    :param str seed_gen: 'gathered' for seeds from gathered set, 'generated' for seeds from generated set
+    :returns pd.DataFrame results: dataframe of coher. metrics for every poss. pair of seed sets
     """
+
+    if seed_gen == "gathered":
+        prefix = "Gathered"
+    else:
+        prefix = "Generated"
     results = {
         "Coherence": [],
-        "Gathered Set A": [],
-        "Gathered Set B": [],
+        prefix + " Set A": [],
+        prefix + " Set B": [],
     }
-
     for i in range(seeds.shape[0]):
-        for j in range(i + 1, seeds.shape[0]):
+        if pairing_method == "window":
+            lim = min(i + 2, seeds.shape[0])
+        else:
+            lim = seeds.shape[0]
+        for j in range(i + 1, lim):
             if len(seeds.Seeds[i]) > 0 and len(seeds.Seeds[j]) > 0:
                 try:
                     coh = metrics.coherence(model, seeds.Seeds[i], seeds.Seeds[j])
-                except:
+                except KeyError:
                     # print("One of seeds not found in model.")
-                    break
+                    continue
                 results["Coherence"].append(coh)
                 if "Category" in seeds.columns:
                     results["Gathered Set A"].append(
@@ -41,8 +81,8 @@ def build_row_table4(model: gm.KeyedVectors, seeds: pd.DataFrame) -> pd.DataFram
                         seeds.Category[j].upper() + ": " + str(seeds.Seeds[j]).strip()
                     )
                 else:
-                    results["Gathered Set A"].append(str(seeds.Seeds[i]).strip())
-                    results["Gathered Set B"].append(str(seeds.Seeds[j]).strip())
+                    results["Generated Set A"].append(str(seeds.Seeds[i]).strip())
+                    results["Generated Set B"].append(str(seeds.Seeds[j]).strip())
     # normalize
     results["Coherence"] /= np.max(results["Coherence"])
 
@@ -64,11 +104,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--embeddings_dir",
         "-d",
-        default="data/models/nytimes_news_articles_min10",
+        default="models/nytimes_news_articles_min10",
         type=str,
         help="Path to directory of embeddings."
         " If relative path, relative to root directory."
         " Default is NYT dataset embeddings.",
+    )
+    parser.add_argument(
+        "--mode",
+        "-m",
+        default="gathered",
+        type=str,
+        help="Generated or gathered seeds.",
     )
     args = parser.parse_args()
 
@@ -81,51 +128,51 @@ if __name__ == "__main__":
     if len(models) == 0:
         raise ValueError("No embeddings found in directory.")
 
-    # part 1: gathered seeds
-    # load in all gathered seeds to memory, clean up
-    all_coherence = []
-    seeds = seedbank.seedbanking("data/seeds/seeds.json")
-    seeds = seeds.sort_index()
-    seeds["Seeds"] = (
-        seeds["Seeds"].str.replace("[\[\]']", "", regex=True).str.split(", ")
-    )
+    if args.mode == "gathered":
+        # part 1: gathered seeds
+        # load in all gathered seeds to memory, clean up
+        all_coherence = []
+        seeds = seedbank.seedbanking("data/seeds/seeds.json")
 
-    seeds["Seeds"] = seeds["Seeds"].map(
-        lambda x: [] if len(x) == 1 and x[0] == "" else x
-    )
+        # get coherence numbers
+        for model in tqdm(models, unit="model"):
+            coh = build_row_table4(model, seeds, seed_gen=args.mode)
+            all_coherence.append(coh)
 
-    # empty seed sets
-    # criterion = seeds.Seeds.map(lambda x: len(x) == 0)
-    # print(seeds[criterion])
+        coh_avg = agg_coherence(all_coherence, seed_gen=args.mode)
+        coh_avg.to_csv("data/table4_gathered.csv", index=False)
 
-    # get coherence numbers and normalize
-    for model in tqdm(models, unit="models"):
-        coh = build_row_table4(model, seeds)
-        all_coherence.append(coh)
+        # display
+        with pd.option_context("display.max_rows", 7):
+            print(coh_avg)
 
-    # average coherence scores across seeds
-    coh_con = pd.concat(all_coherence)
-    coh_avg = coh_con.groupby(["Gathered Set A", "Gathered Set B"]).agg(
-        {"Coherence": ["mean"]}
-    )
-    coh_avg.columns = ["Coherence"]
-    coh_avg = coh_avg.reset_index()
+    elif args.mode == "generated":
 
-    # sort and display
-    coh_avg = coh_avg[["Coherence", "Gathered Set A", "Gathered Set B"]]
-    print(coh_avg.columns)
-    coh_avg = coh_avg.sort_values(by="Coherence", ascending=False)
-    coh_avg.Coherence = coh_avg.Coherence.round(3)
-    with pd.option_context("display.max_rows", 20):
-        print(coh_avg)
+        np.random.seed(42)
+        random.seed(42)
+        # generate random seeds
+        g_seeds = pd.DataFrame(
+            data=pd.Series(
+                [
+                    utils.generate_seed_set(model)
+                    for model in random.choices(models, k=100)
+                ]
+            ),
+            columns=["Seeds"],
+        )
 
-    # TODO: part 2: random seeds
-    # TODO: refactor in prettier way
+        # do coherence
+        all_coherence = []
+        for model in tqdm(models, unit="model"):
+            coh = build_row_table4(model, g_seeds, seed_gen=args.mode)
+            all_coherence.append(coh)
 
-    # generate random seeds
+        coh_avg = agg_coherence(all_coherence, seed_gen=args.mode)
+        coh_avg.to_csv("data/table4_generated.csv", index=False)
 
-    # coherence for each seed (normalize)
+        # display
+        with pd.option_context("display.max_rows", 7):
+            print(coh_avg)
 
-    # pair and rank
-
-    # save to file
+    else:
+        raise NotImplementedError
