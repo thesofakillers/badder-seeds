@@ -31,9 +31,12 @@
       "100": "nytimes_news_articles_min100"
     },
     "wiki_subpath": {
-      "0": "WikiText103_min0",
-      "10": "WikiText103_min10",
-      "100": "WikiText103_min100"
+      "0": "wiki.train.tokens_min0",
+      "10": "wiki.train.tokens_min10",
+      "100": "wiki.train.tokens_min100"
     }
+  },
+  "pairs": {
+    "dir_path": "./"
   }
 }
