@@ -25,15 +25,21 @@ def set_similarity(set_a, set_b, allow_missing=True):
     float
         cosine similarity between the mean vectors of two sets.
     """
+    if len(set_a) == 0 or len(set_b) == 0:
+        return np.nan
     if allow_missing:
-        mean_a = np.nanmean(set_a, axis=-2)
-        mean_b = np.nanmean(set_b, axis=-2)
+        try:
+            mean_a = np.nanmean(set_a, axis=-2)
+            mean_b = np.nanmean(set_b, axis=-2)
+        except ValueError:
+            # in case set_a and set_b are completely NaNs
+            return np.nan
     else:
         if np.isnan(set_a).any() or np.isnan(set_b).any():
-            raise ValueError("Sets cannot contain NaN embeddings")
+            return np.nan
         mean_a = np.mean(set_a, axis=-2)
         mean_b = np.mean(set_b, axis=-2)
-    return cosine_similarity(mean_a.reshape(1, -1), mean_b.reshape(1, -1))
+    return cosine_similarity(mean_a.reshape(1, -1), mean_b.reshape(1, -1))[0, 0]
 
 
 def comp_assoc(
@@ -121,17 +127,22 @@ def do_pca_embeddings(set_a, set_b, num_components=10):
 
     Returns
     -------
-    pca : sklearn.decomposition.PCA
-        fitted PCA object
+    pca : sklearn.decomposition.PCA or None
+        fitted PCA object, None if PCA failed
     """
     matrix = []
+    if len(set_a) < num_components or len(set_b) < num_components:
+        return None
     for emb_a, emb_b in zip(set_a, set_b):
         if np.isnan(emb_a).any() or np.isnan(emb_b).any():
-            # skip this iteration if any of the embeddings are NaN
+            # skip this iteration if any of the embeddings contain NaN
             continue
         center = (emb_a + emb_b) / 2
         matrix.append(emb_a - center)
         matrix.append(emb_b - center)
+    if len(matrix) == 0:
+        # in case none of the embeddings in the set were valid
+        return None
     matrix = np.array(matrix)
     pca = PCA(n_components=num_components)
     pca.fit(matrix)

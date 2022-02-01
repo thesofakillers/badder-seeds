@@ -1,5 +1,5 @@
 import numpy as np
-from preprocess import read_pproc_dataset, docbin_to_docs
+from badseeds.preprocess import read_pproc_dataset, docbin_to_docs
 import gensim.models as gm
 import scipy.stats.stats as st
 
@@ -20,6 +20,7 @@ def get_embeddings(word_list, models, query_strat="average"):
         strategy to use to get embeddings. Options are:
         - "average": average the embeddings of all models that contain the word.
         - "skip": skips word if one model does not contain it, otherwise average
+        - "skip-model": averaging across only models that contain all the words
         - "first": take the embedding of the first model that contains the word.
 
     Returns
@@ -34,6 +35,8 @@ def get_embeddings(word_list, models, query_strat="average"):
         embeddings = get_average_embeddings(word_list, models, allow_missing=False)
     elif query_strat == "first":
         embeddings = get_first_embeddings(word_list, models)
+    elif query_strat == "skip-model":
+        raise NotImplementedError("skip-model strategy not implemented")
     else:
         raise ValueError("query_strat must be one of 'average', 'skip', or 'first'")
     return embeddings
