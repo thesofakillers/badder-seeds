@@ -147,7 +147,10 @@ def do_pca_embeddings(set_a, set_b, num_components=10):
         return None
     matrix = np.array(matrix)
     pca = PCA(n_components=num_components)
-    pca.fit(matrix)
+    try:
+        pca.fit(matrix)
+    except ValueError:
+        return None
 
     return pca
 
