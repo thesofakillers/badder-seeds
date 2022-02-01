@@ -31,9 +31,9 @@
       "100": "nytimes_news_articles_min100"
     },
     "wiki_subpath": {
-      "0": "wiki.trains.tokens_min0",
-      "10": "wiki.trains.tokens_min10",
-      "100": "wiki.trains.tokens_min100"
+      "0": "wiki.train.tokens_min0",
+      "10": "wiki.train.tokens_min10",
+      "100": "wiki.train.tokens_min100"
     }
   }
 }
