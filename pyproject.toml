@@ -8,6 +8,9 @@ authors = [
   "Lea Tiyavorabun <lea.tiyavorabun@student.uva.nl>",
   "Matteo Rosati <matteo.rosati@student.uva.nl",
 ]
+packages = [
+    { include = "badseeds" }
+]
 
 packages = [
     { include = "badseeds" }
