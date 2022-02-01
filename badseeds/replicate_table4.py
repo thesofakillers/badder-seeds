@@ -143,7 +143,7 @@ if __name__ == "__main__":
         coh_avg.to_csv("data/table4_gathered.csv", index=False)
 
         # display
-        with pd.option_context("display.max_rows", 7):
+        with pd.option_context("display.max_rows", 9):
             print(coh_avg)
 
     elif args.mode == "generated":
@@ -173,7 +173,7 @@ if __name__ == "__main__":
         coh_avg.to_csv("data/table4_generated.csv", index=False)
 
         # display
-        with pd.option_context("display.max_rows", 7):
+        with pd.option_context("display.max_rows", 9):
             print(coh_avg)
 
     else:
