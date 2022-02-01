@@ -35,5 +35,8 @@
       "10": "wiki.train.tokens_min10",
       "100": "wiki.train.tokens_min100"
     }
+  },
+  "pairs": {
+    "dir_path": "./"
   }
 }
