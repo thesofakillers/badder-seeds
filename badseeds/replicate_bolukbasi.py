@@ -14,46 +14,14 @@ import random
 import numpy as np
 from gensim.models import KeyedVectors
 
-import metrics
-import seedbank
+import badseeds.seedbank as seedbank
+import badseeds.metrics as metrics
 
 random.seed(42)
 
 
-def read_wordembedding(fname):
-    """
-    reads wordembeddings in .txt format and turns it into a dictionary
-
-    Parametrs
-    -----------
-    fname : string
-        name of .txt file with embeddings
-
-    Returns
-    --------
-    embed_dict: dictionary
-        maps strings (words) to numpy arrays (embedding)
-    """
-
-    print("*** Reading data from " + fname)
-    embed_dict = {}
-    vecs = []
-
-    with open(fname, "r", encoding="utf8") as f:
-        for line in f:
-            s = line.split()
-            v = np.array([float(x) for x in s[1:]])
-            if len(vecs) and vecs[-1].shape != v.shape:
-                print("Got weird line", line)
-                continue
-            v = np.array(v, dtype="float32")
-            embed_dict.update({s[0]: v})
-
-    return embed_dict
-
-
 def pca_seeds_model(
-    seed1, seed2, models, seed1_shuf=False, seed2_shuf=False, components=False
+    seed1, seed2, models, seed1_shuf=False, seed2_shuf=False, seed1_rnd=False, seed2_rnd=False, components=False
 ):
     """
     replicates figure 3
@@ -83,8 +51,9 @@ def pca_seeds_model(
     """
 
     # draw random words from word2vec
-    seed1_rnd = [random.randint(1, 4000) for i in range(10)]
-    seed2_rnd = [random.randint(1, 4000) for i in range(10)]
+    if seed1_rnd == False and seed2_rnd == False:
+        seed1_rnd = [random.randint(1, 4000) for i in range(10)]
+        seed2_rnd = [random.randint(1, 4000) for i in range(10)]
 
     # # shufffled seeds (not needed as of my interpretation)
     # shuffled_list = seed_female + seed_male
@@ -109,12 +78,13 @@ def pca_seeds_model(
 
     for idx, model in enumerate(models):
         pca_ordered = metrics.do_pca(seed1, seed2, model)
-        pca_rnd = metrics.do_pca(seed1_rnd, seed2_rnd, model)
+        if len(seed1_rnd) > 0 and len(seed2_rnd) >0:
+            pca_rnd = metrics.do_pca(seed1_rnd, seed2_rnd, model)
         pca_inshuffle = metrics.do_pca(seed1_shuf, seed2_shuf, model)
         if components:
             variance_ordered.append(pca_ordered.components_)
-            variance_rnd.append(pca_ordered.components_)
-            variance_inshuffle.append(pca_ordered.components_)
+            variance_rnd.append(pca_rnd.components_)
+            variance_inshuffle.append(pca_inshuffle.components_)
 
         else:
             variance_ordered.append(pca_ordered.explained_variance_ratio_)
@@ -149,30 +119,30 @@ if __name__ == "__main__":
 
     # load google news word2vec
     # Load vectors directly from the file
-    # models.append(
-    #     KeyedVectors.load_word2vec_format(
-    #         os.path.join(
-    #             config["models"]["dir_path"], config["models"]["google_news_subpath"]
-    #         )
-    #         + ".bin",
-    #         binary=True,
-    #     )
-    # )
-
-    direct = os.fsencode(
-        os.path.join(
-            config["models"]["dir_path"], config["models"]["nyt_subpath"]["10"]
+    models.append(
+        KeyedVectors.load_word2vec_format(
+            os.path.join(
+                config["models"]["dir_path"], config["models"]["google_news_subpath"]
+            )
+            + ".bin",
+            binary=True,
         )
     )
 
-    for filename in os.listdir(direct):
-        print(filename)
-        f = os.path.join(direct, filename)
+    # direct = os.fsencode(
+    #     os.path.join(
+    #         config["models"]["dir_path"], config["models"]["nyt_subpath"]["10"]
+    #     )
+    # )
 
-        # checking if it is a file
-        if os.path.isfile(f):
-            f = os.fsdecode(f)
-            models.append(KeyedVectors.load(f))
+    # for filename in os.listdir(direct):
+    #     print(filename)
+    #     f = os.path.join(direct, filename)
+
+    #     # checking if it is a file
+    #     if os.path.isfile(f):
+    #         f = os.fsdecode(f)
+    #         models.append(KeyedVectors.load(f))
 
     # get desired seeds:
 
