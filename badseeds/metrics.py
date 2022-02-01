@@ -179,7 +179,6 @@ def do_pca(seed1, seed2, embedding, num_components=10):
     """
 
     matrix = []
-    # num_components =
     for a, b in zip(seed1, seed2):
         try:
             center = (embedding[a] + embedding[b]) / 2
@@ -188,9 +187,9 @@ def do_pca(seed1, seed2, embedding, num_components=10):
         except KeyError as ke:
             print(ke)
             pass
-    # if (len(matrix)) < num_components:
-    #     num_components = len(matrix)
     matrix = np.array(matrix)
+    if matrix.size == 0:
+        print('the embedding matrix is empty')
     pca = PCA(n_components=num_components)
     pca.fit(matrix)
 
