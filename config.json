@@ -1,7 +1,7 @@
 {
   "raw": {
     "dir_path": "./data/raw/",
-    "wiki_subpath": "WikiText103",
+    "wiki_subpath": "WikiText103/WikiText103",
     "goodreads_hb_subpath": "goodreads_reviews_history_biography",
     "goodreads_r_subpath": "goodreads_reviews_romance",
     "nyt_subpath": "nytimes_news_articles"
