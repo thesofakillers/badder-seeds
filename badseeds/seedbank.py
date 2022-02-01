@@ -84,8 +84,6 @@ def seedbanking(dataset, index=False):
     seeds["Category"] = seeds["Category"].apply(clean)
     # convert string representation of list to list
     seeds["Seeds"] = seeds["Seeds"].apply(lambda x: eval(clean(x)))
-    if index:
-        seeds.set_index("Seeds ID", inplace=True)
 
     # remove bigrams in seed sets
     seeds["Seeds"] = seeds["Seeds"].apply(
@@ -95,6 +93,8 @@ def seedbanking(dataset, index=False):
     # remove seed sets with only one element
     seeds = seeds[seeds["Seeds"].apply(len) > 1]
     seeds.reset_index(inplace=True)
+    if index:
+        seeds.set_index("Seeds ID", inplace=True)
 
     return seeds
 
