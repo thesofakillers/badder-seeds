@@ -21,7 +21,14 @@ random.seed(42)
 
 
 def pca_seeds_model(
-    seed1, seed2, models, seed1_shuf=False, seed2_shuf=False, seed1_rnd=False, seed2_rnd=False, components=False
+    seed1,
+    seed2,
+    models,
+    seed1_shuf=False,
+    seed2_shuf=False,
+    seed1_rnd=False,
+    seed2_rnd=False,
+    components=False,
 ):
     """
     replicates figure 3
@@ -78,7 +85,7 @@ def pca_seeds_model(
 
     for idx, model in enumerate(models):
         pca_ordered = metrics.do_pca(seed1, seed2, model)
-        if len(seed1_rnd) > 0 and len(seed2_rnd) >0:
+        if len(seed1_rnd) > 0 and len(seed2_rnd) > 0:
             pca_rnd = metrics.do_pca(seed1_rnd, seed2_rnd, model)
         pca_inshuffle = metrics.do_pca(seed1_shuf, seed2_shuf, model)
         if components:

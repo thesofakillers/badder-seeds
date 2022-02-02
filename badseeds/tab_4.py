@@ -124,6 +124,7 @@ def build_row_table4(
     seeds: pd.DataFrame,
     pairing_method: str = "window",
     pair_path: str = None,
+    coh_mode: str = "weat",
 ) -> pd.DataFrame:
     """
     Builds a dataframe of coherence metrics
@@ -134,6 +135,7 @@ def build_row_table4(
         'window' for moving window, 'all' for all possible pairs
         'file' when loading pairing data, requires pair_path
     :param str pair_path: path to pairing data, if pairing_method is 'file'. Default is None
+    :param str coh_mode: coherence mode to use. "weat" for WEAT, "pca" for PCA. Default is "weat".
     :returns pd.DataFrame results: dataframe of coher. metrics for every poss. pair of seed sets
     """
     if pairing_method == "file":
@@ -161,7 +163,9 @@ def build_row_table4(
                         # to avoid overlapping seeds
                         if set(seeds.Seeds[i]) & set(seeds.Seeds[j]):
                             continue
-                        coh = metrics.coherence(model, seeds.Seeds[i], seeds.Seeds[j])
+                        coh = metrics.coherence(
+                            model, seeds.Seeds[i], seeds.Seeds[j], mode=coh_mode
+                        )
                     except KeyError:
                         # print("One of seeds not found in model.")
                         continue
@@ -176,7 +180,9 @@ def build_row_table4(
             # do coherence
             if len(seeds.Seeds[i]) > 0 and len(seeds.Seeds[j]) > 0:
                 try:
-                    coh = metrics.coherence(model, seeds.Seeds[i], seeds.Seeds[j])
+                    coh = metrics.coherence(
+                        model, seeds.Seeds[i], seeds.Seeds[j], mode=coh_mode
+                    )
                 except KeyError:
                     continue
 
@@ -216,6 +222,13 @@ def build_row_table4(
 #         type=str,
 #         help="Generated or gathered seeds.",
 #     )
+#     parser.add_argument(
+#         "--coh",
+#         "-c",
+#         default="weat",
+#         type=str,
+#         help="Coherence mode. WEAT or PCA.",
+#     )
 #     args = parser.parse_args()
 
 #     # load embeddings
@@ -241,6 +254,7 @@ def build_row_table4(
 #                 seeds,
 #                 pairing_method="file",
 #                 pair_path="./seed_set_pairings.csv",
+#                 coh_mode=args.coh,
 #             )
 #             all_coherence.append(coh)
 
@@ -280,7 +294,9 @@ def build_row_table4(
 #         # do coherence
 #         all_coherence = []
 #         for model in tqdm(models, unit="model"):
-#             coh = build_row_table4(model, g_seeds, pairing_method="all")
+#             coh = build_row_table4(
+#                 model, g_seeds, pairing_method="all", coh_mode=args.coh
+#             )
 #             all_coherence.append(coh)
 
 #         # aggregate

@@ -22,8 +22,6 @@ import badseeds.utils as utils
 import badseeds.replicate_bolukbasi as replicate_bolukbasi
 
 
-
-
 def figure_4(variance_ordered, variance_rnd, variance_inshuffle, sim_list):
 
     pc_ordered = np.mean(variance_ordered, axis=1)[0]
@@ -100,7 +98,7 @@ if __name__ == "__main__":
 
     # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
 
-    seed_list = [seed.loc[seed_set]['Seeds'] for seed_set in gender_seed_list]
+    seed_list = [seed.loc[seed_set]["Seeds"] for seed_set in gender_seed_list]
     seed1 = [item for item in seed_list[0]]
     seed2 = [item for item in seed_list[1]]
 
@@ -117,7 +115,7 @@ if __name__ == "__main__":
         "mother",
         "Mary",
     ]
-    #misses seed
+    # misses seed
     seed2_shuf = [
         "John",
         "man",
@@ -161,7 +159,14 @@ if __name__ == "__main__":
         variance_rnd,
         variance_inshuffle,
     ) = replicate_bolukbasi.pca_seeds_model(
-        seed1, seed2, models, seed1_shuf, seed2_shuf, seed1_rnd, seed2_rnd, components=True
+        seed1,
+        seed2,
+        models,
+        seed1_shuf,
+        seed2_shuf,
+        seed1_rnd,
+        seed2_rnd,
+        components=True,
     )
 
     list_a = [
@@ -205,8 +210,6 @@ if __name__ == "__main__":
     embed_a = utils.get_embeddings(list_a, models, query_strat="average")
     embed_b = utils.get_embeddings(list_a, models, query_strat="average")
     embed_c = utils.get_embeddings(list_a, models, query_strat="average")
-
-
 
     sim = figure_4(
         variance_ordered, variance_rnd, variance_inshuffle, [embed_a, embed_b, embed_c]
