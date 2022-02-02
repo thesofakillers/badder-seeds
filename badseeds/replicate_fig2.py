@@ -39,9 +39,7 @@ def figure_2(seeds, datasets):
         list of arrays with cosine similarity for each seedset and each dataset (model)
     """
 
-    unpleasent = []
     similarity = []
-
     for data in datasets:
         embeds = [[] for i in range(len(seeds))]
         avg_unpleasent = (
