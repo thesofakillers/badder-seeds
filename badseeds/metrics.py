@@ -4,6 +4,8 @@ import numpy.typing as npt
 from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import cosine_similarity
 import gensim.models as gm
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 def set_similarity(set_a, set_b, allow_missing=True):
@@ -28,11 +30,11 @@ def set_similarity(set_a, set_b, allow_missing=True):
     if len(set_a) == 0 or len(set_b) == 0:
         return np.nan
     if allow_missing:
-        try:
-            mean_a = np.nanmean(set_a, axis=-2)
-            mean_b = np.nanmean(set_b, axis=-2)
-        except ValueError:
-            # in case set_a and set_b are completely NaNs
+        # if any of the sets are completely missing words, return NaN
+        mean_a = np.nanmean(set_a, axis=-2)
+        mean_b = np.nanmean(set_b, axis=-2)
+        # this happens if all the embeddings in either set_a or set_b are arrays of NaN
+        if np.isnan(mean_a).any() or np.isnan(mean_b).any():
             return np.nan
     else:
         if np.isnan(set_a).any() or np.isnan(set_b).any():
@@ -145,7 +147,10 @@ def do_pca_embeddings(set_a, set_b, num_components=10):
         return None
     matrix = np.array(matrix)
     pca = PCA(n_components=num_components)
-    pca.fit(matrix)
+    try:
+        pca.fit(matrix)
+    except ValueError:
+        return None
 
     return pca
 
@@ -177,7 +182,6 @@ def do_pca(seed1, seed2, embedding, num_components=10):
     """
 
     matrix = []
-    # num_components =
     for a, b in zip(seed1, seed2):
         try:
             center = (embedding[a] + embedding[b]) / 2
@@ -186,9 +190,9 @@ def do_pca(seed1, seed2, embedding, num_components=10):
         except KeyError as ke:
             print(ke)
             pass
-    # if (len(matrix)) < num_components:
-    #     num_components = len(matrix)
     matrix = np.array(matrix)
+    if matrix.size == 0:
+        print('the embedding matrix is empty')
     pca = PCA(n_components=num_components)
     pca.fit(matrix)
 
