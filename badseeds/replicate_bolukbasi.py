@@ -91,7 +91,6 @@ def pca_seeds_model(
             variance_rnd.append(pca_rnd.explained_variance_ratio_)
             variance_inshuffle.append(pca_inshuffle.explained_variance_ratio_)
 
-    # print(np.asarray(variance_ordered)[0])
     return (
         np.asarray(variance_ordered),
         np.asarray(variance_rnd),
