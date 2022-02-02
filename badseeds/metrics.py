@@ -5,6 +5,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import cosine_similarity
 import gensim.models as gm
 import warnings
+
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
@@ -192,7 +193,7 @@ def do_pca(seed1, seed2, embedding, num_components=10):
             pass
     matrix = np.array(matrix)
     if matrix.size == 0:
-        print('the embedding matrix is empty')
+        print("the embedding matrix is empty")
     pca = PCA(n_components=num_components)
     pca.fit(matrix)
 
