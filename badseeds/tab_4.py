@@ -5,11 +5,9 @@ import pandas as pd
 from pyparsing import NotAny
 from tqdm import tqdm
 import numpy as np
-import utils
 import random
 
-import metrics
-import seedbank
+from badseeds import utils, metrics, seedbank
 
 
 def agg_coherence(all_coh):
