@@ -121,7 +121,9 @@ def preprocess_nyt(
             return byte_data_to_docbin(bytes_data)
 
 
-def preprocess_goodreads(name, path_to_dir="../data/", save_dir="./data/preprocessed_data/", save_path=None):
+def preprocess_goodreads(
+    name, path_to_dir="../data/", save_dir="./data/preprocessed_data/", save_path=None
+):
     """
     Preprocesses Goodreads datasets
 
@@ -236,8 +238,8 @@ def preprocess_wiki(
 
 
 def preprocess_datasets(config_dict):
-    if not os.path.isdir(config_dict['preprocessed']['dir_path']):
-        os.makedirs(config_dict['preprocessed']['dir_path'])
+    if not os.path.isdir(config_dict["preprocessed"]["dir_path"]):
+        os.makedirs(config_dict["preprocessed"]["dir_path"])
     """preprocesses all the datasets"""
     preprocess_nyt(
         os.path.join(config_dict["raw"]["dir_path"], config_dict["raw"]["nyt_subpath"])
@@ -308,4 +310,3 @@ def read_pproc_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
             grhb_dir_path
         )
     return pproc_datasets
-
