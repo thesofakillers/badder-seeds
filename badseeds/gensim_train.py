@@ -1,5 +1,5 @@
 import gensim.models as gm
-from utils import bootstrap
+from badseeds import utils
 from tqdm import tqdm
 import os
 import numpy as np
@@ -42,7 +42,7 @@ def bootstrap_train(
     save_path = os.path.join(models_dir, name_file)
     os.makedirs(save_path, exist_ok=True)
 
-    samples = bootstrap(data_path, n)
+    samples = utils.bootstrap(data_path, n)
     for i, s in enumerate(samples):
         print(f"Sample {i + 1}, building dataset:")
         pos_vocab = {}
@@ -84,95 +84,94 @@ def bootstrap_train(
     return
 
 
-if __name__ == "__main__":
-    import argparse
+# if __name__ == "__main__":
 
-    # Command line arguments
-    parser = argparse.ArgumentParser()
+#     # Command line arguments
+#     parser = argparse.ArgumentParser()
 
-    # directory to save model in and data file path
-    # NOTE: once we have a working preprocess file that does things we can just loop over all dataset directories
-    parser.add_argument(
-        "--models_dir",
-        "-md",
-        default="models/",
-        type=str,
-        help="Path to directory to save models in. If relative path, relative to root directory. Default is models/.",
-    )
+#     # directory to save model in and data file path
+#     # NOTE: once we have a working preprocess file that does things we can just loop over all dataset directories
+#     parser.add_argument(
+#         "--models_dir",
+#         "-md",
+#         default="models/",
+#         type=str,
+#         help="Path to directory to save models in. If relative path, relative to root directory. Default is models/.",
+#     )
 
-    # number of bootstrap samples
-    parser.add_argument(
-        "-n",
-        default=20,
-        type=int,
-        help="Number of bootstrap samples to make. Default is 20.",
-    )
+#     # number of bootstrap samples
+#     parser.add_argument(
+#         "-n",
+#         default=20,
+#         type=int,
+#         help="Number of bootstrap samples to make. Default is 20.",
+#     )
 
-    # Gensim hyperparameters
-    parser.add_argument(
-        "--vector_size",
-        "-vs",
-        default=100,
-        type=int,
-        help="Dimensionality of embedding vector. Default is 100.",
-    )
-    parser.add_argument(
-        "--window",
-        "-w",
-        default=5,
-        type=int,
-        help="Window size. Default is 5.",
-    )
-    parser.add_argument(
-        "--min_count",
-        "-mc",
-        default=10,
-        type=int,
-        help="Minimum word count to filter. Default is 10.",
-    )
-    parser.add_argument(
-        "--negative",
-        "-neg",
-        default=5,
-        type=int,
-        help="Number of negatives to sample. Default is 5.",
-    )
-    parser.add_argument(
-        "--workers",
-        "-ws",
-        default=1,
-        type=int,
-        help="Number of worker threads to train model. Default is 1, because >1 may break reproducibility.",
-    )
-    parser.add_argument(
-        "--seed",
-        "-s",
-        default=42,
-        type=int,
-        help="Random seed for reproducibility. Default is 42.",
-    )
-    parser.add_argument(
-        "--epochs",
-        "-e",
-        default=5,
-        type=int,
-        help="Number of epochs to train skipgram. Default is 5.",
-    )
+#     # Gensim hyperparameters
+#     parser.add_argument(
+#         "--vector_size",
+#         "-vs",
+#         default=100,
+#         type=int,
+#         help="Dimensionality of embedding vector. Default is 100.",
+#     )
+#     parser.add_argument(
+#         "--window",
+#         "-w",
+#         default=5,
+#         type=int,
+#         help="Window size. Default is 5.",
+#     )
+#     parser.add_argument(
+#         "--min_count",
+#         "-mc",
+#         default=10,
+#         type=int,
+#         help="Minimum word count to filter. Default is 10.",
+#     )
+#     parser.add_argument(
+#         "--negative",
+#         "-neg",
+#         default=5,
+#         type=int,
+#         help="Number of negatives to sample. Default is 5.",
+#     )
+#     parser.add_argument(
+#         "--workers",
+#         "-ws",
+#         default=1,
+#         type=int,
+#         help="Number of worker threads to train model. Default is 1, because >1 may break reproducibility.",
+#     )
+#     parser.add_argument(
+#         "--seed",
+#         "-s",
+#         default=42,
+#         type=int,
+#         help="Random seed for reproducibility. Default is 42.",
+#     )
+#     parser.add_argument(
+#         "--epochs",
+#         "-e",
+#         default=5,
+#         type=int,
+#         help="Number of epochs to train skipgram. Default is 5.",
+#     )
 
-    args = parser.parse_args()
-    kwargs = vars(args)
-    models_dir = kwargs.pop("models_dir")
-    n = kwargs.pop("n")
-    seed = kwargs.pop("seed")
+#     args = parser.parse_args()
+#     kwargs = vars(args)
+#     models_dir = kwargs.pop("models_dir")
+#     n = kwargs.pop("n")
+#     seed = kwargs.pop("seed")
 
-    # get root dir and set it as working directory
-    fdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    os.chdir(fdir)
+#     # get root dir and set it as working directory
+#     fdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#     os.chdir(fdir)
 
-    # train word2vec models
-    bootstrap_train(
-        "data/processed/nytimes_news_articles.bin", models_dir, kwargs, seed, n
-    )
-    bootstrap_train("data/processed/wiki.train.tokens.bin", models_dir, kwargs, seed, n)
-    bootstrap_train("data/processed/history_biography", models_dir, kwargs, seed, n)
-    bootstrap_train("data/processed/romance", models_dir, kwargs, seed, n)
+#     # train word2vec models
+#     bootstrap_train(
+#         "data/processed/nytimes_news_articles.bin", models_dir, kwargs, seed, n
+#     )
+#     bootstrap_train("data/processed/wiki.train.tokens.bin", models_dir, kwargs, seed, n)
+#     bootstrap_train("data/processed/history_biography", models_dir, kwargs, seed, n)
+#     bootstrap_train("data/processed/romance", models_dir, kwargs, seed, n)
