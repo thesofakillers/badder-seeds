@@ -16,9 +16,12 @@ import pandas as pd
 from gensim.models import KeyedVectors
 from sklearn.metrics.pairwise import cosine_similarity
 
-import seedbank
-import replicate_bolukbasi
-from utils import catch_keyerror
+import badseeds.metrics as metrics
+import badseeds.seedbank as seedbank
+import badseeds.utils as utils
+import badseeds.replicate_bolukbasi as replicate_bolukbasi
+
+
 
 
 def figure_4(variance_ordered, variance_rnd, variance_inshuffle, sim_list):
@@ -34,9 +37,8 @@ def figure_4(variance_ordered, variance_rnd, variance_inshuffle, sim_list):
         zip([pc_ordered, pc_rnd, pc_inshuffle], sim_list)
     ):
         temp_list = []
-        # print(pc.shape)
         for word in word_list:
-            if word is not None:
+            if word is not None and np.isfinite(word).any():
                 temp_list.append(cosine_similarity([pc, word])[0, 1])
         similarity.append(temp_list)
 
@@ -61,32 +63,32 @@ if __name__ == "__main__":
     models = []
     # load google news word2vec
     # Load vectors directly from the file
-    # models.append(
-    #     KeyedVectors.load_word2vec_format(
-    #         os.path.join(
-    #             config["models"]["dir_path"], config["models"]["google_news_subpath"]
-    #         )
-    #         + ".bin",
-    #         binary=True,
-    #     )
-    # )
+    models.append(
+        KeyedVectors.load_word2vec_format(
+            os.path.join(
+                config["models"]["dir_path"], config["models"]["google_news_subpath"]
+            )
+            + ".bin",
+            binary=True,
+        )
+    )
 
     # replicate fig. 3 with NYT dataset
 
     # get embeddings trained on NYT with min freq of 100
-    direct = os.fsencode(
-        os.path.join(
-            config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
-        )
-    )
+    # direct = os.fsencode(
+    #     os.path.join(
+    #         config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
+    #     )
+    # )
 
-    for filename in os.listdir(direct):
-        f = os.path.join(direct, filename)
+    # for filename in os.listdir(direct):
+    #     f = os.path.join(direct, filename)
 
-        # checking if it is a file
-        if os.path.isfile(f):
-            f = os.fsdecode(f)
-            models.append(KeyedVectors.load(f))
+    #     # checking if it is a file
+    #     if os.path.isfile(f):
+    #         f = os.fsdecode(f)
+    #         models.append(KeyedVectors.load(f))
 
     # get desired seeds:
     seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index="ID")
@@ -99,33 +101,59 @@ if __name__ == "__main__":
     # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
 
     seed_list = [seed.loc[seed_set]['Seeds'] for seed_set in gender_seed_list]
-    seed1 = [item.lower() for item in seed_list[0]]
-    seed2 = [item.lower() for item in seed_list[1]]
+    seed1 = [item for item in seed_list[0]]
+    seed2 = [item for item in seed_list[1]]
 
     # hard coded shuffled seeds from paper
     seed1_shuf = [
-        "herself",
-        "woman",
-        "daughter",
-        "mary",
-        "her",
-        "girl",
-        "mother",
-        "she",
         "female",
+        "she",
+        "woman",
         "gal",
+        "her",
+        "daughter",
+        "girl",
+        "herself",
+        "mother",
+        "Mary",
     ]
+    #misses seed
     seed2_shuf = [
+        "John",
         "man",
-        "his",
-        "he",
         "son",
-        "guy",
-        "himself",
         "father",
-        "boy",
         "male",
-        "john",
+        "himself",
+        "guy",
+        "he",
+        "his",
+        "boy",
+    ]
+
+    seed2_rnd = [
+        "chun",
+        "brush",
+        "dictates",
+        "caesar",
+        "fewest",
+        "breitbart",
+        "rod",
+        "heaped",
+        "julianna",
+        "longest",
+    ]
+    seed1_rnd = [
+        "negatives",
+        "vel",
+        "theirs",
+        "canoe",
+        "meet",
+        "bilingual",
+        "mor",
+        "facets",
+        "fari",
+        "lily",
     ]
 
     (
@@ -133,10 +161,9 @@ if __name__ == "__main__":
         variance_rnd,
         variance_inshuffle,
     ) = replicate_bolukbasi.pca_seeds_model(
-        seed1, seed2, models, seed1_shuf, seed2_shuf, components=True
+        seed1, seed2, models, seed1_shuf, seed2_shuf, seed1_rnd, seed2_rnd, components=True
     )
 
-    # average embeddings?? sounds sketch tbh -> didnt do it for now
     list_a = [
         "herself",
         "ms",
@@ -175,11 +202,11 @@ if __name__ == "__main__":
         "md",
     ]
 
-    embed_a = [catch_keyerror(models, word) for word in list_a]
-    embed_b = [catch_keyerror(models, word) for word in list_b]
-    embed_c = [catch_keyerror(models, word) for word in list_c]
+    embed_a = utils.get_embeddings(list_a, models, query_strat="average")
+    embed_b = utils.get_embeddings(list_a, models, query_strat="average")
+    embed_c = utils.get_embeddings(list_a, models, query_strat="average")
 
-    print(len(embed_a))
+
 
     sim = figure_4(
         variance_ordered, variance_rnd, variance_inshuffle, [embed_a, embed_b, embed_c]

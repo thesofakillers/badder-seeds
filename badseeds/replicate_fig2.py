@@ -1,9 +1,12 @@
 """
 replicates figure 2 from Antoniak et. al (2021)
 """
-import metrics
-import seedbank
-import utils
+from audioop import avg
+import badseeds.metrics as metrics
+import badseeds.seedbank as seedbank
+import badseeds.utils as utils
+
+# import badseeds.seedbank
 
 import seaborn as sns
 
@@ -41,30 +44,23 @@ def figure_2(seeds, datasets):
 
     for data in datasets:
         embeds = [[] for i in range(len(seeds))]
-        for models in data:
-            u = utils.catch_keyerror(models, "unpleasantness")
-            unpleasent.append(np.asarray(u if u is not None else 0))
-            for i, seed in enumerate(seeds):
-                embeds[i].append(
-                    np.asarray(
-                        [
-                            utils.catch_keyerror(models, word)
-                            if utils.catch_keyerror(models, word) is not None
-                            else np.zeros((1,100))
-                            for word in seed
-                        ]
-                    )
+        avg_unpleasent = (
+                    utils.get_average_embeddings("unpleasantness", data, allow_missing=True)
                 )
+        for i, seed in enumerate(seeds):
+            s = utils.get_average_embeddings(seed, data, allow_missing=True)
+            embeds[i].append(s)
 
-        avg_unpleasent = np.mean(unpleasent, axis=0)
+        avg_unpleasent = np.mean(avg_unpleasent, axis=0)
 
         s = []
         for per_seed in embeds:
             temp = []
-            for idx, seed in enumerate(per_seed[0]):
+            for idx, seed in enumerate(per_seed):
                 if seed.ndim < 2:
                     seed = seed.reshape(1,-1)
-                temp.append(cosine_similarity(seed, [avg_unpleasent.T])[0])
+                seed = np.asarray([s for s in seed if np.isfinite(s).any()])
+                temp.append(cosine_similarity(seed, [avg_unpleasent]))
             s.append(np.asarray(temp).flatten())
         similarity.append(s)
 
@@ -90,15 +86,14 @@ if __name__ == "__main__":
     seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index = True)
     
 
-    seed_sets = [
-        "black-Manzini_et_al_2019",
-        "black_roles-Manzini_et_al_2019",
-        "black-Kozlowski_et_al_2019",
-        "black-Rudinger_et_al_2017",
-        # "female_definition_words_2-Zhao_et_al_2018",
-        # "female_stereotype_words-Zhao_et_al_2018",
-    ]
-
+    # seed_sets = [
+    #     "black-Manzini_et_al_2019",
+    #     "black_roles-Manzini_et_al_2019",
+    #     "black-Kozlowski_et_al_2019",
+    #     "black-Rudinger_et_al_2017",
+    #     # "female_definition_words_2-Zhao_et_al_2018",
+    #     # "female_stereotype_words-Zhao_et_al_2018",
+    # ]
 
     seed_sets = [
         "female-Kozlowski_et_al_2019",
@@ -127,7 +122,6 @@ if __name__ == "__main__":
         )
 
         for filename in os.listdir(direct):
-            # print(filename)
             f = os.path.join(direct, filename)
 
             # checking if it is a file
@@ -180,6 +174,8 @@ if __name__ == "__main__":
     legend = ax1.get_legend()
     handles = legend.legendHandles
     ax.legend(handles, ["history and biography", "romance"])
+    plt.xlabel('cosine similairty to unpleasentness')
+    # ax.set_xticklabels(['2011','2012','2013','2014','2015','2016','2017','2018'])
 
     # show plot
     plt.show()
