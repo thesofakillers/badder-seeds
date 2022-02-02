@@ -2,7 +2,6 @@ import os, string
 
 import gensim.models as gm
 import pandas as pd
-from pyparsing import NotAny
 from tqdm import tqdm
 import numpy as np
 import random
@@ -10,7 +9,34 @@ import random
 from badseeds import utils, metrics, seedbank
 
 
-def agg_coherence(all_coh):
+def merge_on_list(left: pd.DataFrame, right: pd.DataFrame, by: list):
+    """Joins two dataframes by some columns where the column values are lists.
+    This is an outer left join.
+    :param pd.DataFrame left: dataframe to join to
+    :param pd.DataFrame right: dataframe to join from
+    :param list by: list of columns to merge on (all contain lists)
+    :returns pd.DataFrame joined: joined dataframe
+    """
+    print(f"Merging {right.shape} df into {left.shape} df by {by}")
+    name = [i + "_key" for i in by]
+
+    # convert list to string
+    left[name] = left[by].applymap(str)
+    right[name] = right[by].applymap(str)
+    right = right.drop(columns=by)
+    print(left)
+    print(right)
+
+    # joins and drops new key columns
+    joined = left.merge(right, on=name, how="left")
+    joined.drop(name, axis=1, inplace=True)
+
+    print(f"results in {joined.shape} df")
+
+    return joined
+
+
+def agg_coherence(all_coh: pd.DataFrame):
     """
     Returns average and rounded coherence across models
     :param list all_coh: list of coherence dataframes for each model
@@ -19,19 +45,31 @@ def agg_coherence(all_coh):
 
     # average coherence scores across models
     coh_con = pd.concat(all_coh)
-    coh_avg = coh_con.groupby(["Set A", "Set B"]).agg({"Coherence": ["mean"]})
+    if "Set ID A" in coh_con.columns and "Set ID B" in coh_con.columns:
+        coh_avg = coh_con.groupby(["Set ID A", "Set ID B"]).agg({"Coherence": ["mean"]})
+    else:
+        coh_avg = coh_con.groupby(["Set A", "Set B"]).agg({"Coherence": ["mean"]})
+
     coh_avg.columns = ["Coherence"]
     coh_avg = coh_avg.reset_index()
 
-    # sort and display
-    coh_avg = coh_avg[["Coherence", "Set A", "Set B"]]
+    if "Set ID A" not in coh_avg.columns and "Set ID B" not in coh_avg.columns:
+        coh_avg[["Set A", "Set B"]] = coh_avg[["Set A", "Set B"]].applymap(
+            lambda x: eval(x)
+        )
+
     coh_avg = coh_avg.sort_values(by="Coherence", ascending=False)
-    coh_avg.Coherence = coh_avg.Coherence.round(3)
 
     return coh_avg
 
 
-def append_row(coh, results, seeds, i, j, pretty_category: bool = False):
+def append_row(
+    coh: float,
+    results: dict,
+    seeds: pd.DataFrame,
+    i: int,
+    j: int,
+):
     """
     Appends a row of coherence metrics and seed sets to results dataframe
     :param float coh: coherence score
@@ -39,19 +77,46 @@ def append_row(coh, results, seeds, i, j, pretty_category: bool = False):
     :param pd.DataFrame seeds: Dataframe of seed sets. Needs 1 "Seeds" column.
     :param int i: index of seed set A
     :param int j: index of seed set B
-    :param bool pretty_category: whether to use category names to pretty print
     :returns None
     """
     # build row
     results["Coherence"].append(coh)
 
-    if pretty_category:
-        results["Set A"].append(seeds.Category[i].upper() + ": " + str(seeds.Seeds[i]))
-        results["Set B"].append(seeds.Category[j].upper() + ": " + str(seeds.Seeds[j]))
+    if "Seeds ID" in seeds.columns:
+        results["Set ID A"].append(seeds["Seeds ID"][i])
+        results["Set ID B"].append(seeds["Seeds ID"][j])
     else:
-        results["Set A"].append(str(seeds.Seeds[i]).strip())
-        results["Set B"].append(str(seeds.Seeds[j]).strip())
+        results["Set A"].append(str(seeds.Seeds[i]))
+        results["Set B"].append(str(seeds.Seeds[j]))
     return
+
+
+def clean_tab_4(coh_avg: pd.DataFrame, seeds: pd.DataFrame, prefix: str):
+    """
+    Cleans coherence dataframe for tab 4
+    :param pd.DataFrame coh_avg: dataframe of average coherence across models for seed pairs
+    :param pd.DataFrame seeds: Dataframe of seed sets.
+    :param str prefix: prefix for seed sets, "generated" or "gathered"
+    :returns pd.DataFrame coh_avg: cleaned dataframe
+    """
+
+    if "Set ID A" in coh_avg.columns and "Set ID B" in coh_avg.columns:
+        coh_avg["Set A"] = coh_avg["Set ID A"].apply(
+            lambda x: seeds.Category[x].upper() + ": " + str(seeds.Seeds[x])
+        )
+        coh_avg["Set B"] = coh_avg["Set ID B"].apply(
+            lambda x: seeds.Category[x].upper() + ": " + str(seeds.Seeds[x])
+        )
+        coh_avg.drop(columns=["Set ID A", "Set ID B"], inplace=True)
+    else:
+        coh_avg = coh_avg[["Coherence", "Set A", "Set B"]]
+        coh_avg[["Set A", "Set B"]] = coh_avg[["Set A", "Set B"]].applymap(str)
+
+    coh_avg.Coherence = coh_avg.Coherence.round(3)
+    coh_avg.columns = ["Coherence", prefix + " Set A", prefix + " Set B"]
+    coh_avg.replace(r"\[|\]|'", "", regex=True, inplace=True)
+
+    return coh_avg
 
 
 def build_row_table4(
@@ -59,7 +124,6 @@ def build_row_table4(
     seeds: pd.DataFrame,
     pairing_method: str = "window",
     pair_path: str = None,
-    category_print: bool = False,
 ) -> pd.DataFrame:
     """
     Builds a dataframe of coherence metrics
@@ -70,7 +134,6 @@ def build_row_table4(
         'window' for moving window, 'all' for all possible pairs
         'file' when loading pairing data, requires pair_path
     :param str pair_path: path to pairing data, if pairing_method is 'file'. Default is None
-    :param bool category_print: whether to print the seed category or not
     :returns pd.DataFrame results: dataframe of coher. metrics for every poss. pair of seed sets
     """
     if pairing_method == "file":
@@ -83,6 +146,8 @@ def build_row_table4(
         "Coherence": [],
         "Set A": [],
         "Set B": [],
+        "Set ID A": [],
+        "Set ID B": [],
     }
     if pairing_method != "file":
         for i in range(seeds.shape[0]):
@@ -100,16 +165,13 @@ def build_row_table4(
                     except KeyError:
                         # print("One of seeds not found in model.")
                         continue
-                    append_row(
-                        coh, results, seeds, i, j, pretty_category=category_print
-                    )
+                    append_row(coh, results, seeds, i, j)
     else:
         for k in range(pairs.shape[0]):
-            # find seeds in seeds dataframe
-            id1 = pairs[pairs.columns[0]][k]
-            id2 = pairs[pairs.columns[1]][k]
-            i = seeds[seeds["Seeds ID"] == id1].index[0]
-            j = seeds[seeds["Seeds ID"] == id2].index[0]
+            # find pair index
+            seeds.set_index("Seeds ID", inplace=True, drop=False, verify_integrity=True)
+            i = pairs[pairs.columns[0]][k]
+            j = pairs[pairs.columns[1]][k]
 
             # do coherence
             if len(seeds.Seeds[i]) > 0 and len(seeds.Seeds[j]) > 0:
@@ -118,9 +180,10 @@ def build_row_table4(
                 except KeyError:
                     continue
 
-                append_row(coh, results, seeds, i, j, pretty_category=category_print)
+                append_row(coh, results, seeds, i, j)
 
     # normalize
+    results = {k: v for k, v in results.items() if v}
     results["Coherence"] /= np.max(results["Coherence"])
 
     # make into df
@@ -178,14 +241,14 @@ if __name__ == "__main__":
                 seeds,
                 pairing_method="file",
                 pair_path="./seed_set_pairings.csv",
-                category_print=True,
             )
             all_coherence.append(coh)
 
+        # aggregate
         coh_avg = agg_coherence(all_coherence)
 
-        coh_avg.columns = ["Coherence", prefix + " Set A", prefix + " Set B"]
-        coh_avg.replace(r"\[|\]|'", "", regex=True, inplace=True)
+        # clean up for display
+        coh_avg = clean_tab_4(coh_avg, seeds, prefix)
 
         coh_avg.to_csv("data/table4_gathered.csv", index=False)
 
@@ -205,7 +268,12 @@ if __name__ == "__main__":
                 if 0 not in [c in check for w in s for c in w]:
                     sampled.append(s)
                     break
+
         g_seeds = pd.DataFrame(data=pd.Series(sampled), columns=["Seeds"])
+
+        # check for duplicates in seeds
+        if 0 in g_seeds.apply(str).duplicated():
+            raise ValueError("Duplicate seeds found.")
 
         prefix = "Generated"
 
@@ -215,10 +283,10 @@ if __name__ == "__main__":
             coh = build_row_table4(model, g_seeds, pairing_method="all")
             all_coherence.append(coh)
 
+        # aggregate
         coh_avg = agg_coherence(all_coherence)
 
-        coh_avg.columns = ["Coherence", prefix + " Set A", prefix + " Set B"]
-        coh_avg.replace(r"\[|\]|'", "", regex=True, inplace=True)
+        coh_avg = clean_tab_4(coh_avg, g_seeds, prefix)
 
         coh_avg.to_csv("data/table4_generated.csv", index=False)
 
@@ -227,4 +295,30 @@ if __name__ == "__main__":
             print(coh_avg)
 
     else:
-        raise NotImplementedError
+        df = pd.read_csv("data/table4_generated.csv")
+        df.columns = ["Coherence", "Set A", "Set B"]
+        df[["Set A", "Set B"]] = df[["Set A", "Set B"]].applymap(
+            lambda x: x.split(", ")
+        )
+
+        # generate random seeds, ignore non-alpha characters
+        check = string.printable
+        np.random.seed(42)
+        random.seed(42)
+        sampled = []
+        for model in random.choices(models, k=50):
+            while True:
+                s = utils.generate_seed_set(model)
+                if 0 not in [c in check for w in s for c in w]:
+                    sampled.append(s)
+                    break
+
+        g_seeds = pd.DataFrame(data=pd.Series(sampled), columns=["Seeds"])
+        paired = []
+        for i in range(g_seeds.shape[0]):
+            for j in range(i + 1, g_seeds.shape[0]):
+                paired.append([g_seeds.Seeds[i], g_seeds.Seeds[j]])
+        paired = pd.DataFrame(data=paired, columns=["Set A", "Set B"])
+
+        # merge
+        print(merge_on_list(df, paired, ["Set A", "Set B"]))
