@@ -64,7 +64,7 @@ def get_seeds(seeds, seed_list, id_loc="index"):
     return extracted_seeds
 
 
-def seedbanking(dataset, index=False):
+def seedbanking(dataset, index=False, filter_bigrams=True, filter_short=True):
     """
     loads .json as pandas DataFrame
 
@@ -74,6 +74,10 @@ def seedbanking(dataset, index=False):
         seed.json directory
     index: boolean, default False
         whether to use "Seed ID" as index
+    filter_bigrams: boolean, default True
+        whether to filter bigrams
+    filter_short: boolean, default True
+        whether to filter short seed sets
 
     Returns
     --------
@@ -84,12 +88,15 @@ def seedbanking(dataset, index=False):
     seeds["Category"] = seeds["Category"].apply(clean)
     # convert string representation of list to list
     seeds["Seeds"] = seeds["Seeds"].apply(lambda x: eval(clean(x)))
-    # remove bigrams in seed sets
-    seeds["Seeds"] = seeds["Seeds"].apply(
-        lambda x: [i for i in x if len(i.split()) == 1]
-    )
-    # remove seed sets with only one element
-    seeds = seeds[seeds["Seeds"].apply(len) > 1]
+    if filter_bigrams:
+        # remove bigrams in seed sets
+        seeds["Seeds"] = seeds["Seeds"].apply(
+            lambda x: [i for i in x if len(i.split()) == 1]
+        )
+    if filter_short:
+        # remove seed sets with only one element
+        seeds = seeds[seeds["Seeds"].apply(len) > 1]
+    # index need to be reset after filtering
     seeds.reset_index(drop=True, inplace=True)
     if index:
         seeds.set_index("Seeds ID", inplace=True)
