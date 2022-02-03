@@ -41,7 +41,6 @@ class LoadTheData:
             else:
                 raise ValueError("Extension not supported yet")
 
-
     def unzip_folder(self, destination, out_file_path, file_id):
         name = destination.split(".")[-3]
         if not os.path.isfile(destination):
@@ -56,7 +55,6 @@ class LoadTheData:
                 print("Extracting all the files now...")
                 zip.extractall(out_file_path)
                 print(f"Finished unzipping the {destination} dataset")
-
 
     def download_raw(self):
         raw_path = self.config["raw"]["dir_path"]
@@ -107,7 +105,6 @@ class LoadTheData:
             f.write(receive.content)
         print("Seeds are downloaded!")
 
-
     def download_preprocessed(self):
         pproc_path = self.config["preprocessed"]["dir_path"]
         if not os.path.isdir(pproc_path):
@@ -120,7 +117,6 @@ class LoadTheData:
         file_id = "1-829_LhP213j5-Xthwnj-CAxz9VC3GTH"
         self.unzip_folder(destination, out_file_path, file_id)
 
-
     def download_models(self):
         models_path = self.config["models"]["dir_path"]
         if not os.path.isdir(models_path):
@@ -128,7 +124,9 @@ class LoadTheData:
             print("Created folder : ", models_path)
 
         # Download the embeddings trained on the GoogleNews dataset
-        g_news_path = os.path.join(models_path, self.config["models"]["google_news_subpath"])
+        g_news_path = os.path.join(
+            models_path, self.config["models"]["google_news_subpath"]
+        )
         destination = g_news_path + ".bin.gz"
         out_file_path = g_news_path + ".bin"
         file_id = "0B7XkCwpI5KDYNlNUTTlSS21pQmM"
@@ -194,7 +192,6 @@ class LoadTheData:
             destination = wiki_path + ".zip"
             out_file_path = models_path
             self.unzip_folder(destination, out_file_path, file_id)
-
 
     def download_all(self):
         self.download_raw()

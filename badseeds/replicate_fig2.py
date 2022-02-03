@@ -39,14 +39,12 @@ def figure_2(seeds, datasets):
         list of arrays with cosine similarity for each seedset and each dataset (model)
     """
 
-    unpleasent = []
     similarity = []
-
     for data in datasets:
         embeds = [[] for i in range(len(seeds))]
-        avg_unpleasent = (
-                    utils.get_average_embeddings("unpleasantness", data, allow_missing=True)
-                )
+        avg_unpleasent = utils.get_average_embeddings(
+            "unpleasantness", data, allow_missing=True
+        )
         for i, seed in enumerate(seeds):
             s = utils.get_average_embeddings(seed, data, allow_missing=True)
             embeds[i].append(s)
@@ -58,7 +56,7 @@ def figure_2(seeds, datasets):
             temp = []
             for idx, seed in enumerate(per_seed):
                 if seed.ndim < 2:
-                    seed = seed.reshape(1,-1)
+                    seed = seed.reshape(1, -1)
                 seed = np.asarray([s for s in seed if np.isfinite(s).any()])
                 temp.append(cosine_similarity(seed, [avg_unpleasent]))
             s.append(np.asarray(temp).flatten())
@@ -83,8 +81,7 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = json.load(f)
 
-    seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index = True)
-    
+    seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index=True)
 
     # seed_sets = [
     #     "black-Manzini_et_al_2019",
@@ -104,7 +101,7 @@ if __name__ == "__main__":
         "female_stereotype_words-Zhao_et_al_2018",
     ]
 
-    extracted_seeds = [seeds.loc[seed_set]['Seeds'] for seed_set in seed_sets]
+    extracted_seeds = [seeds.loc[seed_set]["Seeds"] for seed_set in seed_sets]
 
     # seed = [item.lower() for item in seed_list[0]]
 
@@ -174,7 +171,7 @@ if __name__ == "__main__":
     legend = ax1.get_legend()
     handles = legend.legendHandles
     ax.legend(handles, ["history and biography", "romance"])
-    plt.xlabel('cosine similairty to unpleasentness')
+    plt.xlabel("cosine similairty to unpleasentness")
     # ax.set_xticklabels(['2011','2012','2013','2014','2015','2016','2017','2018'])
 
     # show plot
