@@ -1,6 +1,7 @@
 """
 Computes Fig 5 metrics given a set of parameters.
 """
+import sys
 import os
 import random
 import itertools
@@ -13,7 +14,7 @@ from tqdm import tqdm
 import gensim.models as gm
 import matplotlib.pyplot as plt
 
-from badseeds import seedbank, utils, metrics
+from badseeds import seedbank, utils, metrics, tab_4
 
 
 def comp_fig_5_metrics(
@@ -21,6 +22,7 @@ def comp_fig_5_metrics(
     pair_df: pd.core.frame.DataFrame,
     config: dict,
     corpus: str = "wiki",
+    mode: str = "PCA",
     min_freq: int = 10,
     seed: int = 42,
     verbose: bool = False,
@@ -32,6 +34,7 @@ def comp_fig_5_metrics(
         "wiki",
         "nyt",
     ], "corpus must be one of goodreads_hb, goodreads_r, wiki, nyt"
+    assert mode in ["PCA", "Coherence"], "mode must be one of PCA, Coherence"
     assert min_freq in [0, 10], "min_freq must be one of 0, 10"
     # set seed for replicability
     np.random.seed(42)
@@ -51,11 +54,19 @@ def comp_fig_5_metrics(
     # gathered seed sets
     gathered_seeds = seeds["Seeds"]
     # generated seed sets
-    # 50 generated seed sets of size 25
-    generated_seeds = [
-        utils.generate_seed_set(model, n=24)
-        for model in tqdm(random.choices(models, k=50), disable=not verbose)
-    ]
+    # 50 generated seed sets of size 25, avoiding duplicates
+    generated_seeds = []
+    # mirrored set to for quick lookup
+    generated_seed_sets = set()
+    for model in tqdm(random.choices(models, k=50), disable=not verbose):
+        while True:
+            seed_list = utils.generate_seed_set(model, n=24)
+            # make list hashable for duplicate checking
+            seed_set = frozenset(seed_list)
+            if seed_set not in generated_seed_sets:
+                generated_seed_sets.add(seed_set)
+                generated_seeds.append(seed_list)
+                break
     print(
         "Obtaining gathered and generated seed set embeddings..."
     ) if verbose else None
@@ -64,45 +75,95 @@ def comp_fig_5_metrics(
         utils.get_embeddings(seed_set, models, query_strat="average")
         for seed_set in tqdm(gathered_seeds, disable=not verbose)
     ]
+    gathered_id2emb = {
+        set_id: embeddings
+        for set_id, embeddings in zip(seeds["Seeds ID"], gathered_seeds_embeddings)
+    }
     generated_seeds_embeddings = [
         utils.get_embeddings(seed_set, models, query_strat="average")
         for seed_set in tqdm(generated_seeds, disable=not verbose)
     ]
     print("Pairing gathered and generated seed sets...") if verbose else None
     #   gathered seeds
+    # sorting for coherence match
+    pair_df.sort_values(["ID_A", "ID_B"], inplace=True)
     pair_ids = [list(x) for x in pair_df.to_records(index=False)]
     pair_idxs = [
         seeds[seeds["Seeds ID"].isin(pair)].index.to_list()
         for pair in tqdm(pair_ids, disable=not verbose)
+    ]
+    gathered_pairs = [
+        [gathered_seeds[i], gathered_seeds[j]]
+        for (i, j) in tqdm(pair_idxs, disable=not verbose)
     ]
     gathered_emb_pairs = [
         [gathered_seeds_embeddings[i], gathered_seeds_embeddings[j]]
         for (i, j) in tqdm(pair_idxs, disable=not verbose)
     ]
     #   generated seeds
+    generated_pairs = list(itertools.combinations(generated_seeds, 2))
     generated_emb_pairs = list(itertools.combinations(generated_seeds_embeddings, 2))
+    # sorting for coherence match
+    gen_pair_sort_idxs = [
+        i[0]
+        for i in sorted(enumerate(generated_pairs), key=lambda x: (x[1][0], x[1][1]))
+    ]
+    sorted_gen_pairs = [generated_pairs[i] for i in gen_pair_sort_idxs]
+    sorted_gen_emb_pairs = [generated_emb_pairs[i] for i in gen_pair_sort_idxs]
 
-    print(
-        "Computing gathered and generated seed set explained variance..."
-    ) if verbose else None
-    #   gathered seeds
-    gathered_pca_models = [
-        metrics.do_pca_embeddings(set_a, set_b, 3)
-        for (set_a, set_b) in tqdm(gathered_emb_pairs, disable=not verbose)
-    ]
-    gathered_exp_var = [
-        model.explained_variance_ratio_[0] if model is not None else np.nan
-        for model in gathered_pca_models
-    ]
-    #   generated seeds
-    generated_pca_models = [
-        metrics.do_pca_embeddings(set_a, set_b, 3)
-        for (set_a, set_b) in tqdm(generated_emb_pairs, disable=not verbose)
-    ]
-    generated_exp_var = [
-        model.explained_variance_ratio_[0] if model is not None else np.nan
-        for model in generated_pca_models
-    ]
+    if mode == "PCA":
+        print(
+            "Computing gathered and generated seed set explained variance..."
+        ) if verbose else None
+        #   gathered seeds
+        gathered_pca_models = [
+            metrics.do_pca_embeddings(set_a, set_b, 3)
+            for (set_a, set_b) in tqdm(gathered_emb_pairs, disable=not verbose)
+        ]
+        gathered_y_values = [
+            model.explained_variance_ratio_[0] if model is not None else np.nan
+            for model in gathered_pca_models
+        ]
+        #   generated seeds
+        generated_pca_models = [
+            metrics.do_pca_embeddings(set_a, set_b, 3)
+            for (set_a, set_b) in tqdm(sorted_gen_emb_pairs, disable=not verbose)
+        ]
+        generated_y_values = [
+            model.explained_variance_ratio_[0] if model is not None else np.nan
+            for model in generated_pca_models
+        ]
+    elif mode == "Coherence":
+        print(
+            "Computing gathered and generated seed set coherence..."
+        ) if verbose else None
+        #   gathered seeds
+        gathered_coherences = []
+        for model in tqdm(models, disable=not verbose):
+            coh = tab_4.build_row_table4(
+                model,
+                seeds,
+                pairing_method="file",
+                pair_path="./seed_set_pairings.csv",
+                nan_not_skip=True,
+            )
+            gathered_coherences.append(coh)
+        gathered_y_values = tab_4.agg_coherence(gathered_coherences, False)[
+            "Coherence"
+        ].tolist()
+        #   generated seeds
+        generated_coherences = []
+        for model in tqdm(models, disable=not verbose):
+            coh = tab_4.build_row_table4(
+                model,
+                pd.DataFrame(data=pd.Series(generated_seeds), columns=["Seeds"]),
+                pairing_method="all",
+                nan_not_skip=True,
+            )
+            generated_coherences.append(coh)
+        generated_y_values = tab_4.agg_coherence(generated_coherences, False)[
+            "Coherence"
+        ].tolist()
     print(
         "Computing gathered and generated seed set similarity..."
     ) if verbose else None
@@ -114,10 +175,10 @@ def comp_fig_5_metrics(
     #   generated seeds
     generated_set_sim = [
         metrics.set_similarity(set_a, set_b, True)
-        for (set_a, set_b) in tqdm(generated_emb_pairs, disable=not verbose)
+        for (set_a, set_b) in tqdm(sorted_gen_emb_pairs, disable=not verbose)
     ]
     print("Done.") if verbose else None
-    return gathered_exp_var, generated_exp_var, gathered_set_sim, generated_set_sim
+    return gathered_y_values, generated_y_values, gathered_set_sim, generated_set_sim
 
 
 if __name__ == "__main__":
@@ -135,12 +196,19 @@ if __name__ == "__main__":
         help="Use embeddings from skip-gram trained on this corpus",
     )
     parser.add_argument(
-        "-m",
+        "-f",
         "--min_freq",
         type=int,
         default=10,
         help="Use embeddings from skip-gram trained"
         " with this minimum frequency of words",
+    )
+    parser.add_argument(
+        "-m",
+        "--mode",
+        type=str,
+        default="PCA",
+        help="Use PCA or coherence metrics",
     )
     parser.add_argument(
         "-s",
@@ -168,17 +236,24 @@ if __name__ == "__main__":
     pair_df = pd.read_csv(config["pairs"]["dir_path"] + "seed_set_pairings.csv")
 
     (
-        gathered_exp_var,
-        generated_exp_var,
+        gathered_y_values,
+        generated_y_values,
         gathered_set_sim,
         generated_set_sim,
     ) = comp_fig_5_metrics(
-        seeds, pair_df, config, args.corpus, args.min_freq, args.seed, args.verbose
+        seeds,
+        pair_df,
+        config,
+        args.corpus,
+        args.mode,
+        args.min_freq,
+        args.seed,
+        args.verbose,
     )
 
     # plot
     # additional processing§
-    gen_coef = np.polyfit(generated_set_sim, generated_exp_var, 1)
+    gen_coef = np.polyfit(generated_set_sim, generated_y_values, 1)
     gen_poly1d_fn = np.poly1d(gen_coef)
     # highlighted seed sets
     names_idx = pair_df[
@@ -195,7 +270,7 @@ if __name__ == "__main__":
     # generated
     ax.plot(
         generated_set_sim,
-        generated_exp_var,
+        generated_y_values,
         "o",
         generated_set_sim,
         gen_poly1d_fn(generated_set_sim),
@@ -208,7 +283,7 @@ if __name__ == "__main__":
     # gathered
     ax.plot(
         gathered_set_sim,
-        gathered_exp_var,
+        gathered_y_values,
         "o",
         markersize=10,
         markerfacecolor="#F1B7B0",
@@ -216,11 +291,11 @@ if __name__ == "__main__":
     )
 
     highlighted_set_sim = [gathered_set_sim[idx] for idx in [names_idx, roles_idx]]
-    highlighted_exp_var = [gathered_exp_var[idx] for idx in [names_idx, roles_idx]]
+    highlighted_y_values = [gathered_y_values[idx] for idx in [names_idx, roles_idx]]
     # highlighted gathered
     ax.plot(
         highlighted_set_sim,
-        highlighted_exp_var,
+        highlighted_y_values,
         "o",
         markersize=10,
         markerfacecolor="#EC5E7B",
@@ -230,7 +305,7 @@ if __name__ == "__main__":
     for i, label in enumerate(["Black vs White Names", "Black vs White Roles"]):
         ax.annotate(
             label,
-            (highlighted_set_sim[i], highlighted_exp_var[i]),
+            (highlighted_set_sim[i], highlighted_y_values[i]),
             xytext=(-10, 10),
             textcoords="offset points",
             horizontalalignment="right",
@@ -241,7 +316,7 @@ if __name__ == "__main__":
         )
 
     ax.set_xlabel("Set Similarity")
-    ax.set_ylabel("Explained Variance Ratio")
+    ax.set_ylabel("Explained Variance Ratio" if args.mode == "PCA" else "Coherence")
 
     fig.set_tight_layout(True)
     plt.show()
