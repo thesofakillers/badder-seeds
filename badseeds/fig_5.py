@@ -86,8 +86,8 @@ def comp_fig_5_metrics(
     print("Pairing gathered and generated seed sets...") if verbose else None
     #   gathered seeds
     # sorting for coherence match
-    pair_df.sort_values(["ID_A", "ID_B"], inplace=True)
-    pair_ids = [list(x) for x in pair_df.to_records(index=False)]
+    sorted_pair_df = pair_df.sort_values(["ID_A", "ID_B"], inplace=False)
+    pair_ids = [list(x) for x in sorted_pair_df.to_records(index=False)]
     pair_idxs = [
         seeds[seeds["Seeds ID"].isin(pair)].index.to_list()
         for pair in tqdm(pair_ids, disable=not verbose)
