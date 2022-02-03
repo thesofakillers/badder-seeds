@@ -252,8 +252,12 @@ if __name__ == "__main__":
     )
 
     # plot
-    # additional processing§
-    gen_coef = np.polyfit(generated_set_sim, generated_y_values, 1)
+    valid_idx = np.isfinite(generated_set_sim) & np.isfinite(generated_y_values)
+    gen_coef = np.polyfit(
+        np.array(generated_set_sim)[valid_idx],
+        np.array(generated_y_values)[valid_idx],
+        1,
+    )
     gen_poly1d_fn = np.poly1d(gen_coef)
     # highlighted seed sets
     names_idx = pair_df[
