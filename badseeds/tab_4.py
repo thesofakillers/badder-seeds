@@ -1,4 +1,5 @@
-import os, string
+import os
+import string
 
 import gensim.models as gm
 import pandas as pd
@@ -12,10 +13,20 @@ from badseeds import utils, metrics, seedbank
 def merge_on_list(left: pd.DataFrame, right: pd.DataFrame, by: list):
     """Joins two dataframes by some columns where the column values are lists.
     This is an outer left join.
-    :param pd.DataFrame left: dataframe to join to
-    :param pd.DataFrame right: dataframe to join from
-    :param list by: list of columns to merge on (all contain lists)
-    :returns pd.DataFrame joined: joined dataframe
+
+    Parameters
+    ----------
+    left: pd.core.frame.DataFrame
+        dataframe to join to
+    right: pd.core.frame.DataFrame
+        dataframe to join from
+    by: list
+        list of columns to merge on (all contain lists)
+
+    Returns
+    -------
+    joined : pd.core.frame.DataFrame
+        joined dataframe
     """
     print(f"Merging {right.shape} df into {left.shape} df by {by}")
     name = [i + "_key" for i in by]
@@ -37,11 +48,19 @@ def merge_on_list(left: pd.DataFrame, right: pd.DataFrame, by: list):
 
 
 def agg_coherence(all_coh: pd.DataFrame, sort: bool = True):
-    """
-    Returns average and rounded coherence across models
-    :param list all_coh: list of coherence dataframes for each model
-    :param bool sort: whether to sort dataframe by coherence, default True
-    :returns pd.DataFrame coh_avg: dataframe of average coherence across models for seed pairs
+    """Returns average and rounded coherence across models
+
+    Parameters
+    ----------
+    all_coh: list of pd.core.frame.DataFrame
+        list of coherence dataframes for each model
+    sort: bool, default True
+         whether to sort dataframe by coherence
+
+    Returns
+    -------
+    coh_avg : pd.core.frame.DataFrame
+        dataframe of average coherence across models for seed pairs
     """
 
     # average coherence scores across models
@@ -75,13 +94,20 @@ def append_row(
     j: int,
 ):
     """
-    Appends a row of coherence metrics and seed sets to results dataframe
-    :param float coh: coherence score
-    :param dict results: dict of lists {'Coherence': [], 'Set A': [], 'Set B': []}
-    :param pd.DataFrame seeds: Dataframe of seed sets. Needs 1 "Seeds" column.
-    :param int i: index of seed set A
-    :param int j: index of seed set B
-    :returns None
+    Appends a row of coherence metrics and seed sets to results dataframe in place
+
+    Parameters
+    ----------
+    coh : float
+        coherence score
+    results : dict
+        dict of lists {'Coherence': [], 'Set A': [], 'Set B': []}
+    seeds : pd.core.frame.DataFrame
+        Dataframe of seed sets. Needs 1 "Seeds" column.
+    i : int
+        index of seed set A
+    j : int
+        index of seed set B
     """
     # build row
     results["Coherence"].append(coh)
@@ -98,10 +124,20 @@ def append_row(
 def clean_tab_4(coh_avg: pd.DataFrame, seeds: pd.DataFrame, prefix: str):
     """
     Cleans coherence dataframe for tab 4
-    :param pd.DataFrame coh_avg: dataframe of average coherence across models for seed pairs
-    :param pd.DataFrame seeds: Dataframe of seed sets.
-    :param str prefix: prefix for seed sets, "generated" or "gathered"
-    :returns pd.DataFrame coh_avg: cleaned dataframe
+
+    Parameters
+    ----------
+    coh_avg : pd.core.frame.DataFrame
+        dataframe of average coherence across models for seed pairs
+    seeds : pd.core.frame.DataFrame
+        Dataframe of seed sets.
+    prefix : str
+        prefix for seed sets, "generated" or "gathered"
+
+    Returns
+    -------
+    coh_avg : pd.core.frame.DataFrame
+        cleaned dataframe
     """
 
     if "Set ID A" in coh_avg.columns and "Set ID B" in coh_avg.columns:
@@ -134,15 +170,28 @@ def build_row_table4(
     """
     Builds a dataframe of coherence metrics
     for every possible pair of seed sets given embeddings
-    :param gm.KeyedVectors model: embeddings model
-    :param pd.Dataframe seeds: Dataframe of seed sets. Needs at least 1 "Seeds" column.
-    :param str pairing_method: pairing method to use.
+
+    Parameters
+    ----------
+    model : gm.KeyedVectors
+        embeddings model
+    seeds : pd.core.frame.DataFrame
+        Dataframe of seed sets. Needs at least 1 "Seeds" column.
+    pairing_method : str, default "window"
+         pairing method to use.
         'window' for moving window, 'all' for all possible pairs
         'file' when loading pairing data, requires pair_path
-    :param str pair_path: path to pairing data, if pairing_method is 'file'. Default is None
-    :param bool nan_not_skip: whether to set coherence to NaN instead of skipping
-    :param str coh_mode: coherence mode to use. "weat" for WEAT, "pca" for PCA. Default is "weat".
-    :returns pd.DataFrame results: dataframe of coher. metrics for every poss. pair of seed sets
+    pair_path : str, default None
+         path to pairing data, if pairing_method is 'file'. Default is None
+    nan_not_skip : bool, default False
+         whether to set coherence to NaN instead of skipping
+    coh_mode : str, default "weat"
+        coherence mode to use. "weat" for WEAT, "pca" for PCA.
+
+    Returns
+    -------
+    results : pd.core.frame.DataFrame
+        dataframe of coherence metrics for every possible pair of seed sets
     """
     if pairing_method == "file":
         if pair_path:
@@ -211,144 +260,144 @@ def build_row_table4(
     return results
 
 
-# if __name__ == "__main__":
-#     import argparse
+if __name__ == "__main__":
+    import argparse
 
-#     # get root dir and set it as working directory
-#     fdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#     os.chdir(fdir)
+    # get root dir and set it as working directory
+    fdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(fdir)
 
-#     # Command line arguments
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument(
-#         "--embeddings_dir",
-#         "-d",
-#         default="models/nytimes_news_articles_min10",
-#         type=str,
-#         help="Path to directory of embeddings."
-#         " If relative path, relative to root directory."
-#         " Default is NYT dataset embeddings.",
-#     )
-#     parser.add_argument(
-#         "--mode",
-#         "-m",
-#         default="gathered",
-#         type=str,
-#         help="Generated or gathered seeds.",
-#     )
-#     parser.add_argument(
-#         "--coh",
-#         "-c",
-#         default="weat",
-#         type=str,
-#         help="Coherence mode. WEAT or PCA.",
-#     )
-#     args = parser.parse_args()
+    # Command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--embeddings_dir",
+        "-d",
+        default="models/nytimes_news_articles_min10",
+        type=str,
+        help="Path to directory of embeddings."
+        " If relative path, relative to root directory."
+        " Default is NYT dataset embeddings.",
+    )
+    parser.add_argument(
+        "--mode",
+        "-m",
+        default="gathered",
+        type=str,
+        help="Generated or gathered seeds.",
+    )
+    parser.add_argument(
+        "--coh",
+        "-c",
+        default="weat",
+        type=str,
+        help="Coherence mode. WEAT or PCA.",
+    )
+    args = parser.parse_args()
 
-#     # load embeddings
-#     models = []
-#     for file in os.listdir(args.embeddings_dir):
-#         if file.endswith(".kv"):
-#             models.append(gm.KeyedVectors.load(os.path.join(args.embeddings_dir, file)))
+    # load embeddings
+    models = []
+    for file in os.listdir(args.embeddings_dir):
+        if file.endswith(".kv"):
+            models.append(gm.KeyedVectors.load(os.path.join(args.embeddings_dir, file)))
 
-#     if len(models) == 0:
-#         raise ValueError("No embeddings found in directory.")
+    if len(models) == 0:
+        raise ValueError("No embeddings found in directory.")
 
-#     if args.mode == "gathered":
-#         # part 1: gathered seeds
-#         # load in all gathered seeds to memory, clean up
-#         seeds = seedbank.seedbanking("data/seeds/seeds.json")
-#         prefix = "Gathered"
+    if args.mode == "gathered":
+        # part 1: gathered seeds
+        # load in all gathered seeds to memory, clean up
+        seeds = seedbank.seedbanking("data/seeds/seeds.json")
+        prefix = "Gathered"
 
-#         # get coherence numbers
-#         all_coherence = []
-#         for model in tqdm(models, unit="model"):
-#             coh = build_row_table4(
-#                 model,
-#                 seeds,
-#                 pairing_method="file",
-#                 pair_path="./seed_set_pairings.csv",
-#                 coh_mode=args.coh,
-#             )
-#             all_coherence.append(coh)
+        # get coherence numbers
+        all_coherence = []
+        for model in tqdm(models, unit="model"):
+            coh = build_row_table4(
+                model,
+                seeds,
+                pairing_method="file",
+                pair_path="./seed_set_pairings.csv",
+                coh_mode=args.coh,
+            )
+            all_coherence.append(coh)
 
-#         # aggregate
-#         coh_avg = agg_coherence(all_coherence)
+        # aggregate
+        coh_avg = agg_coherence(all_coherence)
 
-#         # clean up for display
-#         coh_avg = clean_tab_4(coh_avg, seeds, prefix)
+        # clean up for display
+        coh_avg = clean_tab_4(coh_avg, seeds, prefix)
 
-#         coh_avg.to_csv("data/table4_gathered.csv", index=False)
+        coh_avg.to_csv("data/table4_gathered.csv", index=False)
 
-#         # display
-#         with pd.option_context("display.max_rows", 9, "display.max_colwidth", 60):
-#             print(coh_avg)
+        # display
+        with pd.option_context("display.max_rows", 9, "display.max_colwidth", 60):
+            print(coh_avg)
 
-#     elif args.mode == "generated":
-#         check = string.printable
-#         np.random.seed(42)
-#         random.seed(42)
-#         # generate random seeds, ignore non-alpha characters
-#         sampled = []
-#         for model in random.choices(models, k=50):
-#             while True:
-#                 s = utils.generate_seed_set(model)
-#                 if 0 not in [c in check for w in s for c in w]:
-#                     sampled.append(s)
-#                     break
+    elif args.mode == "generated":
+        check = string.printable
+        np.random.seed(42)
+        random.seed(42)
+        # generate random seeds, ignore non-alpha characters
+        sampled = []
+        for model in random.choices(models, k=50):
+            while True:
+                s = utils.generate_seed_set(model)
+                if 0 not in [c in check for w in s for c in w]:
+                    sampled.append(s)
+                    break
 
-#         g_seeds = pd.DataFrame(data=pd.Series(sampled), columns=["Seeds"])
+        g_seeds = pd.DataFrame(data=pd.Series(sampled), columns=["Seeds"])
 
-#         # check for duplicates in seeds
-#         if 0 in g_seeds.apply(str).duplicated():
-#             raise ValueError("Duplicate seeds found.")
+        # check for duplicates in seeds
+        if 0 in g_seeds.apply(str).duplicated():
+            raise ValueError("Duplicate seeds found.")
 
-#         prefix = "Generated"
+        prefix = "Generated"
 
-#         # do coherence
-#         all_coherence = []
-#         for model in tqdm(models, unit="model"):
-#             coh = build_row_table4(
-#                 model, g_seeds, pairing_method="all", coh_mode=args.coh
-#             )
-#             all_coherence.append(coh)
+        # do coherence
+        all_coherence = []
+        for model in tqdm(models, unit="model"):
+            coh = build_row_table4(
+                model, g_seeds, pairing_method="all", coh_mode=args.coh
+            )
+            all_coherence.append(coh)
 
-#         # aggregate
-#         coh_avg = agg_coherence(all_coherence)
+        # aggregate
+        coh_avg = agg_coherence(all_coherence)
 
-#         coh_avg = clean_tab_4(coh_avg, g_seeds, prefix)
+        coh_avg = clean_tab_4(coh_avg, g_seeds, prefix)
 
-#         coh_avg.to_csv("data/table4_generated.csv", index=False)
+        coh_avg.to_csv("data/table4_generated.csv", index=False)
 
-#         # display
-#         with pd.option_context("display.max_rows", 9, "display.max_colwidth", 100):
-#             print(coh_avg)
+        # display
+        with pd.option_context("display.max_rows", 9, "display.max_colwidth", 100):
+            print(coh_avg)
 
-#     else:
-#         df = pd.read_csv("data/table4_generated.csv")
-#         df.columns = ["Coherence", "Set A", "Set B"]
-#         df[["Set A", "Set B"]] = df[["Set A", "Set B"]].applymap(
-#             lambda x: x.split(", ")
-#         )
+    else:
+        df = pd.read_csv("data/table4_generated.csv")
+        df.columns = ["Coherence", "Set A", "Set B"]
+        df[["Set A", "Set B"]] = df[["Set A", "Set B"]].applymap(
+            lambda x: x.split(", ")
+        )
 
-#         # generate random seeds, ignore non-alpha characters
-#         check = string.printable
-#         np.random.seed(42)
-#         random.seed(42)
-#         sampled = []
-#         for model in random.choices(models, k=50):
-#             while True:
-#                 s = utils.generate_seed_set(model)
-#                 if 0 not in [c in check for w in s for c in w]:
-#                     sampled.append(s)
-#                     break
+        # generate random seeds, ignore non-alpha characters
+        check = string.printable
+        np.random.seed(42)
+        random.seed(42)
+        sampled = []
+        for model in random.choices(models, k=50):
+            while True:
+                s = utils.generate_seed_set(model)
+                if 0 not in [c in check for w in s for c in w]:
+                    sampled.append(s)
+                    break
 
-#         g_seeds = pd.DataFrame(data=pd.Series(sampled), columns=["Seeds"])
-#         paired = []
-#         for i in range(g_seeds.shape[0]):
-#             for j in range(i + 1, g_seeds.shape[0]):
-#                 paired.append([g_seeds.Seeds[i], g_seeds.Seeds[j]])
-#         paired = pd.DataFrame(data=paired, columns=["Set A", "Set B"])
+        g_seeds = pd.DataFrame(data=pd.Series(sampled), columns=["Seeds"])
+        paired = []
+        for i in range(g_seeds.shape[0]):
+            for j in range(i + 1, g_seeds.shape[0]):
+                paired.append([g_seeds.Seeds[i], g_seeds.Seeds[j]])
+        paired = pd.DataFrame(data=paired, columns=["Set A", "Set B"])
 
-#         # merge
-#         print(merge_on_list(df, paired, ["Set A", "Set B"]))
+        # merge
+        print(merge_on_list(df, paired, ["Set A", "Set B"]))
