@@ -1,20 +1,19 @@
 """
 replicates figure 4 in Atoniak et al. (2021)
-
-basically extract 1st PC and compute cosine similarity between it and listed words
-
-## still pretty ugly 
 """
 
 import argparse
 import json
 import os
+import itertools
+import collections
 
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 from sklearn.metrics.pairwise import cosine_similarity
+import seaborn as sns
 
 import badseeds.metrics as metrics
 import badseeds.seedbank as seedbank
@@ -22,25 +21,57 @@ import badseeds.utils as utils
 import badseeds.replicate_bolukbasi as replicate_bolukbasi
 
 
-def figure_4(variance_ordered, variance_rnd, variance_inshuffle, sim_list):
+def figure_4(variance_ordered, variance_rnd, variance_inshuffle,models):
+    """
+    replicates figure 4 in Antoniak et al. (2016)
 
-    pc_ordered = np.mean(variance_ordered, axis=1)[0]
+    Parametrs
+    -----------
+    variance_ordered : array-like of float
+        components of PCA on ordered seed set
+    variance_rnd: array-like of float
+        components of PCA on random seed set
+    variance_inshuffle: array-like of float
+        components of PCA on suffled seed set
+    models: list of KeyedVectors
+        list of all KeyedVectors obtained through bootstrapping
 
-    pc_rnd = np.mean(variance_rnd, axis=1)[0]
-    pc_inshuffle = np.mean(variance_inshuffle, axis=1)[0]
+    Returns
+    --------
+    gender_pairs_values: list of floats
+        cosine similarity of top & bottom 10 words in corpus
+    gender_pairs_words: list of strings
+        words with cosine similarity of top & bottom 10 words in corpus
+    random_pairs_values: list of floats
+        cosine similarity of top & bottom 10 words in corpus
+    random_pairs_words: list of strings
+        words with cosine similarity of top & bottom 10 words in corpus
+    shuffled_gender_pairs_values: list of floats
+        cosine similarity of top & bottom 10 words in corpus
+    shuffled_gender_pairs_words: list of strings
+        words with cosine similarity of top & bottom 10 words in corpus
+    """
 
-    similarity = []
+    collect = collections.Counter(models[0].index_to_key)
+    s = 0
+    for model in models[1:]:
+        s += len(model.index_to_key)
+        collect = collect & collections.Counter(model.index_to_key)
 
-    for idx, (pc, word_list) in enumerate(
-        zip([pc_ordered, pc_rnd, pc_inshuffle], sim_list)
-    ):
-        temp_list = []
-        for word in word_list:
-            if word is not None and np.isfinite(word).any():
-                temp_list.append(cosine_similarity([pc, word])[0, 1])
-        similarity.append(temp_list)
+    overlap_list = list((collect).elements())
+    overlap_embed = utils.get_embeddings(overlap_list, models, query_strat="average")
+    vals = []
+    words = []
+    for var in [variance_ordered, variance_rnd, variance_inshuffle]:
+        temp = np.mean(var, axis=0)[0]
+        cos_sim = cosine_similarity(overlap_embed, [temp]).flatten()
+        v, w = zip(*sorted(zip(list(cos_sim), overlap_list)))
+        vals.append(v[:10] + v[-10:])
+        words.append((w[:10] + w[-10:]))
 
-    return similarity
+
+    return np.asarray(vals[0]), words[0], np.asarray(vals[1]), words[1], np.asarray(vals[2]), words[2]
+
 
 
 if __name__ == "__main__":
@@ -54,6 +85,13 @@ if __name__ == "__main__":
         default="config.json",
         type=str,
     )
+    parser.add_argument(
+        "-d",
+        "--corpus",
+        type=str,
+        default="nyt",
+        help="Use embeddings from skip-gram trained on this corpus",
+    )
     args = parser.parse_args()
     with open(args.config, "r") as f:
         config = json.load(f)
@@ -61,32 +99,37 @@ if __name__ == "__main__":
     models = []
     # load google news word2vec
     # Load vectors directly from the file
-    models.append(
-        KeyedVectors.load_word2vec_format(
-            os.path.join(
-                config["models"]["dir_path"], config["models"]["google_news_subpath"]
+    if args.corpus == "googlenews":
+        models.append(
+            KeyedVectors.load_word2vec_format(
+                os.path.join(
+                    config["models"]["dir_path"], config["models"]["google_news_subpath"]
+                )
+                + ".bin",
+                binary=True,
             )
-            + ".bin",
-            binary=True,
         )
-    )
 
     # replicate fig. 3 with NYT dataset
+    elif args.corpus == "nyt":
+        # get embeddings trained on NYT with min freq of 100
+        direct = os.fsencode(
+            os.path.join(
+                config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
+            )
+        )
 
-    # get embeddings trained on NYT with min freq of 100
-    # direct = os.fsencode(
-    #     os.path.join(
-    #         config["models"]["dir_path"], config["models"]["nyt_subpath"]["100"]
-    #     )
-    # )
+        for filename in os.listdir(direct):
+            f = os.path.join(direct, filename)
 
-    # for filename in os.listdir(direct):
-    #     f = os.path.join(direct, filename)
-
-    #     # checking if it is a file
-    #     if os.path.isfile(f):
-    #         f = os.fsdecode(f)
-    #         models.append(KeyedVectors.load(f))
+            # checking if it is a file
+            if os.path.isfile(f):
+                f = os.fsdecode(f)
+                models.append(KeyedVectors.load(f))
+    
+    else:
+        print('this corpus is not implemented')
+        exit()
 
     # get desired seeds:
     seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index="ID")
@@ -96,11 +139,8 @@ if __name__ == "__main__":
         "definitional_male-Bolukbasi_et_al_2016",
     ]
 
-    # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
 
     seed_list = [seed.loc[seed_set]["Seeds"] for seed_set in gender_seed_list]
-    seed1 = [item for item in seed_list[0]]
-    seed2 = [item for item in seed_list[1]]
 
     # hard coded shuffled seeds from paper
     seed1_shuf = [
@@ -113,11 +153,11 @@ if __name__ == "__main__":
         "girl",
         "herself",
         "mother",
-        "Mary",
+        "mary",
     ]
     # misses seed
     seed2_shuf = [
-        "John",
+        "john",
         "man",
         "son",
         "father",
@@ -167,52 +207,72 @@ if __name__ == "__main__":
         components=True,
     )
 
-    list_a = [
-        "herself",
-        "ms",
-        "her",
-        "she",
-        "pregnant",
-        "pitching",
-        "baseball",
-        "syndergraad",
-        "himself",
-        "his",
-    ]
+(
+    gender_pairs_values, 
+    gender_pairs_words, 
+    random_pairs_values, 
+    random_pairs_words, 
+    shuffled_gender_pairs_values, 
+    shuffled_gender_pairs_words,
+    
+) = figure_4(variance_ordered, variance_rnd, variance_inshuffle, models)
 
-    list_b = [
-        "likelihood",
-        "eurozone",
-        "incentive",
-        "downturn",
-        "setback",
-        "photographed",
-        "tales" "hood",
-        "gracia",
-        "danced",
-    ]
+# plot
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+fig.set_size_inches(w=6.50127, h=5)
+fig.tight_layout(rect=[0, 0, 0.9, 1], pad=6)
 
-    list_c = [
-        "outcomes",
-        "son",
-        "father",
-        "mother",
-        "aunt",
-        "potentially",
-        "male",
-        "hood",
-        "garcia",
-        "md",
-    ]
+all_values = np.concatenate(
+    [gender_pairs_values, random_pairs_values, shuffled_gender_pairs_values]
+)
+vmin, vmax = np.min(all_values), np.max(all_values)
 
-    embed_a = utils.get_embeddings(list_a, models, query_strat="average")
-    embed_b = utils.get_embeddings(list_a, models, query_strat="average")
-    embed_c = utils.get_embeddings(list_a, models, query_strat="average")
+ax1 = sns.heatmap(
+    gender_pairs_values[::-1, np.newaxis],
+    yticklabels=gender_pairs_words,
+    xticklabels=[],
+    cmap=plt.get_cmap("PiYG"),
+    ax=ax1,
+    cbar=False,
+    annot=True,
+    center=np.zeros(1),
+    linewidths=0.5,
+    vmin=vmin,
+    vmax=vmax,
+)
+ax1.set_yticklabels(ax1.get_yticklabels(), rotation=0, fontsize=10)
+ax1.set_xlabel("gender word \n pairs")
 
-    sim = figure_4(
-        variance_ordered, variance_rnd, variance_inshuffle, [embed_a, embed_b, embed_c]
-    )
+ax2 = sns.heatmap(
+    random_pairs_values[::-1, np.newaxis],
+    yticklabels=random_pairs_words,
+    xticklabels=[],
+    cmap=plt.get_cmap("PiYG"),
+    ax=ax2,
+    cbar=False,
+    annot=True,
+    center=0,
+    linewidths=0.5,
+    vmin=vmin,
+    vmax=vmax,
+)
+ax2.set_yticklabels(ax2.get_yticklabels(), rotation=0, fontsize=10)
+ax2.set_xlabel("random word \n pairs")
 
-    print(list_a, "\n", sim[0], "\n")
-    print(list_b, "\n", sim[1], "\n")
-    print(list_c, "\n", sim[2], "\n")
+ax3 = sns.heatmap(
+    shuffled_gender_pairs_values[::-1, np.newaxis],
+    yticklabels=shuffled_gender_pairs_words,
+    xticklabels=[],
+    cmap=plt.get_cmap("PiYG"),
+    ax=ax3,
+    cbar=False,
+    annot=True,
+    center=0,
+    linewidths=0.5,
+    vmin=vmin,
+    vmax=vmax,
+)
+ax3.set_yticklabels(ax3.get_yticklabels(), rotation=0, fontsize=10)
+ax3.set_xlabel("shuffled gender \n word pairs")
+
+plt.show()

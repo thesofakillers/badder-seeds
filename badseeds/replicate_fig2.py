@@ -1,25 +1,24 @@
 """
 replicates figure 2 from Antoniak et. al (2021)
 """
+import os
+import argparse
+import json
+
 from audioop import avg
-import badseeds.metrics as metrics
-import badseeds.seedbank as seedbank
-import badseeds.utils as utils
-
-# import badseeds.seedbank
-
 import seaborn as sns
-
 import matplotlib.pyplot as plt
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import numpy.ma as ma
-import os
-from gensim.models import KeyedVectors
 from itertools import repeat
+from gensim.models import KeyedVectors
 import pandas as pd
-import argparse
-import json
+
+import badseeds.metrics as metrics
+import badseeds.seedbank as seedbank
+import badseeds.utils as utils
+
 
 
 def figure_2(seeds, datasets):
@@ -83,15 +82,6 @@ if __name__ == "__main__":
 
     seeds = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index=True)
 
-    # seed_sets = [
-    #     "black-Manzini_et_al_2019",
-    #     "black_roles-Manzini_et_al_2019",
-    #     "black-Kozlowski_et_al_2019",
-    #     "black-Rudinger_et_al_2017",
-    #     # "female_definition_words_2-Zhao_et_al_2018",
-    #     # "female_stereotype_words-Zhao_et_al_2018",
-    # ]
-
     seed_sets = [
         "female-Kozlowski_et_al_2019",
         "female_1-Caliskan_et_al_2017",
@@ -102,8 +92,6 @@ if __name__ == "__main__":
     ]
 
     extracted_seeds = [seeds.loc[seed_set]["Seeds"] for seed_set in seed_sets]
-
-    # seed = [item.lower() for item in seed_list[0]]
 
     datasets = []
 
@@ -172,7 +160,4 @@ if __name__ == "__main__":
     handles = legend.legendHandles
     ax.legend(handles, ["history and biography", "romance"])
     plt.xlabel("cosine similairty to unpleasentness")
-    # ax.set_xticklabels(['2011','2012','2013','2014','2015','2016','2017','2018'])
-
-    # show plot
     plt.show()
