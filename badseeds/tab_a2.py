@@ -121,9 +121,9 @@ def append_row(
     return
 
 
-def clean_tab_4(coh_avg: pd.DataFrame, seeds: pd.DataFrame, prefix: str):
+def clean_tab_a2(coh_avg: pd.DataFrame, seeds: pd.DataFrame, prefix: str):
     """
-    Cleans coherence dataframe for tab 4
+    Cleans coherence dataframe for tab A.2
 
     Parameters
     ----------
@@ -159,7 +159,7 @@ def clean_tab_4(coh_avg: pd.DataFrame, seeds: pd.DataFrame, prefix: str):
     return coh_avg
 
 
-def build_row_table4(
+def build_row_table_a2(
     model: gm.KeyedVectors,
     seeds: pd.DataFrame,
     pairing_method: str = "window",
@@ -312,7 +312,7 @@ if __name__ == "__main__":
         # get coherence numbers
         all_coherence = []
         for model in tqdm(models, unit="model"):
-            coh = build_row_table4(
+            coh = build_row_table_a2(
                 model,
                 seeds,
                 pairing_method="file",
@@ -325,7 +325,7 @@ if __name__ == "__main__":
         coh_avg = agg_coherence(all_coherence)
 
         # clean up for display
-        coh_avg = clean_tab_4(coh_avg, seeds, prefix)
+        coh_avg = clean_tab_a2(coh_avg, seeds, prefix)
 
         coh_avg.to_csv("data/table4_gathered.csv", index=False)
 
@@ -357,7 +357,7 @@ if __name__ == "__main__":
         # do coherence
         all_coherence = []
         for model in tqdm(models, unit="model"):
-            coh = build_row_table4(
+            coh = build_row_table_a2(
                 model, g_seeds, pairing_method="all", coh_mode=args.coh
             )
             all_coherence.append(coh)
@@ -365,7 +365,7 @@ if __name__ == "__main__":
         # aggregate
         coh_avg = agg_coherence(all_coherence)
 
-        coh_avg = clean_tab_4(coh_avg, g_seeds, prefix)
+        coh_avg = clean_tab_a2(coh_avg, g_seeds, prefix)
 
         coh_avg.to_csv("data/table4_generated.csv", index=False)
 

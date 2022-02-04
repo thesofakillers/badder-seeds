@@ -18,7 +18,7 @@ import badseeds.utils as utils
 import badseeds.replicate_bolukbasi as replicate_bolukbasi
 
 
-def figure_4(variance_ordered, variance_rnd, variance_inshuffle, models):
+def figure_1(variance_ordered, variance_rnd, variance_inshuffle, models):
     """
     replicates figure 4 in Antoniak et al. (2016)
 
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         random_pairs_words,
         shuffled_gender_pairs_values,
         shuffled_gender_pairs_words,
-    ) = figure_4(variance_ordered, variance_rnd, variance_inshuffle, models)
+    ) = figure_1(variance_ordered, variance_rnd, variance_inshuffle, models)
 
     # plot
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)

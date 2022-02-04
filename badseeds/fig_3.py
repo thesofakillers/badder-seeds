@@ -16,7 +16,7 @@ import badseeds.seedbank as seedbank
 import badseeds.utils as utils
 
 
-def figure_2(seeds, datasets):
+def figure_3(seeds, datasets):
     """
     replicates figure 2 in Antoniak et al. (2016)
 
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
         datasets.append(models)
 
-    similarity = figure_2(extracted_seeds, datasets)
+    similarity = figure_3(extracted_seeds, datasets)
 
     for sim in similarity:
         for i, j in zip(extracted_seeds, sim):

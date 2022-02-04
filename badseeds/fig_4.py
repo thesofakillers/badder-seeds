@@ -14,10 +14,10 @@ from tqdm import tqdm
 import gensim.models as gm
 import matplotlib.pyplot as plt
 
-from badseeds import seedbank, utils, metrics, tab_4
+from badseeds import seedbank, utils, metrics, tab_a2
 
 
-def comp_fig_5_metrics(
+def comp_fig_4_metrics(
     seeds: pd.core.frame.DataFrame,
     pair_df: pd.core.frame.DataFrame,
     config: dict,
@@ -28,7 +28,7 @@ def comp_fig_5_metrics(
     verbose: bool = False,
 ) -> Tuple[List[float], List[float], List[float], List[float]]:
     """
-    Computes metrics for plotting figure 5 given a set of parameters.
+    Computes metrics for plotting figure 4 given a set of parameters.
 
     Parameters
     ----------
@@ -163,7 +163,7 @@ def comp_fig_5_metrics(
         #   gathered seeds
         gathered_coherences = []
         for model in tqdm(models, disable=not verbose):
-            coh = tab_4.build_row_table4(
+            coh = tab_a2.build_row_table_a2(
                 model,
                 seeds,
                 pairing_method="file",
@@ -171,20 +171,20 @@ def comp_fig_5_metrics(
                 nan_not_skip=True,
             )
             gathered_coherences.append(coh)
-        gathered_y_values = tab_4.agg_coherence(gathered_coherences, False)[
+        gathered_y_values = tab_a2.agg_coherence(gathered_coherences, False)[
             "Coherence"
         ].tolist()
         #   generated seeds
         generated_coherences = []
         for model in tqdm(models, disable=not verbose):
-            coh = tab_4.build_row_table4(
+            coh = tab_a2.build_row_table_a2(
                 model,
                 pd.DataFrame(data=pd.Series(generated_seeds), columns=["Seeds"]),
                 pairing_method="all",
                 nan_not_skip=True,
             )
             generated_coherences.append(coh)
-        generated_y_values = tab_4.agg_coherence(generated_coherences, False)[
+        generated_y_values = tab_a2.agg_coherence(generated_coherences, False)[
             "Coherence"
         ].tolist()
     print(
@@ -206,7 +206,7 @@ def comp_fig_5_metrics(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Computes Fig 5 metrics given a set of parameters."
+        description="Computes Fig 4 metrics given a set of parameters."
     )
     parser.add_argument(
         "-c", "--config", type=str, default="./config.json", help="Path to config file."
@@ -263,7 +263,7 @@ if __name__ == "__main__":
         generated_y_values,
         gathered_set_sim,
         generated_set_sim,
-    ) = comp_fig_5_metrics(
+    ) = comp_fig_4_metrics(
         seeds,
         pair_df,
         config,
