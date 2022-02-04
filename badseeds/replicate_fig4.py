@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 from sklearn.metrics.pairwise import cosine_similarity
+import seaborn as sns
 
 import badseeds.metrics as metrics
 import badseeds.seedbank as seedbank
@@ -20,7 +21,7 @@ import badseeds.utils as utils
 import badseeds.replicate_bolukbasi as replicate_bolukbasi
 
 
-def figure_4(variance_ordered, variance_rnd, variance_inshuffle):
+def figure_4(variance_ordered, variance_rnd, variance_inshuffle,models):
     """
     replicates figure 4 in Antoniak et al. (2016)
 
@@ -32,6 +33,8 @@ def figure_4(variance_ordered, variance_rnd, variance_inshuffle):
         components of PCA on random seed set
     variance_inshuffle: array-like of float
         components of PCA on suffled seed set
+    models: list of KeyedVectors
+        list of all KeyedVectors obtained through bootstrapping
 
     Returns
     --------
@@ -207,8 +210,72 @@ if __name__ == "__main__":
         components=True,
     )
 
-    v_o, w_o, v_rnd, w_rnd, v_s, w_s = figure_4(variance_ordered, variance_rnd, variance_inshuffle)
+(
+    gender_pairs_values, 
+    gender_pairs_words, 
+    random_pairs_values, 
+    random_pairs_words, 
+    shuffled_gender_pairs_values, 
+    shuffled_gender_pairs_words,
+    
+) = figure_4(variance_ordered, variance_rnd, variance_inshuffle, models)
 
-    print(v_o, "\n", w_o, "\n")
-    print(v_rnd, "\n", w_rnd, "\n")
-    print(v_s, "\n", w_s, "\n")
+# plot
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+fig.set_size_inches(w=6.50127, h=5)
+fig.tight_layout(rect=[0, 0, 0.9, 1], pad=6)
+
+all_values = np.concatenate(
+    [gender_pairs_values, random_pairs_values, shuffled_gender_pairs_values]
+)
+vmin, vmax = np.min(all_values), np.max(all_values)
+
+ax1 = sns.heatmap(
+    gender_pairs_values[::-1, np.newaxis],
+    yticklabels=gender_pairs_words,
+    xticklabels=[],
+    cmap=plt.get_cmap("PiYG"),
+    ax=ax1,
+    cbar=False,
+    annot=True,
+    center=np.zeros(1),
+    linewidths=0.5,
+    vmin=vmin,
+    vmax=vmax,
+)
+ax1.set_yticklabels(ax1.get_yticklabels(), rotation=0, fontsize=10)
+ax1.set_xlabel("gender word \n pairs")
+
+ax2 = sns.heatmap(
+    random_pairs_values[::-1, np.newaxis],
+    yticklabels=random_pairs_words,
+    xticklabels=[],
+    cmap=plt.get_cmap("PiYG"),
+    ax=ax2,
+    cbar=False,
+    annot=True,
+    center=0,
+    linewidths=0.5,
+    vmin=vmin,
+    vmax=vmax,
+)
+ax2.set_yticklabels(ax2.get_yticklabels(), rotation=0, fontsize=10)
+ax2.set_xlabel("random word \n pairs")
+
+ax3 = sns.heatmap(
+    shuffled_gender_pairs_values[::-1, np.newaxis],
+    yticklabels=shuffled_gender_pairs_words,
+    xticklabels=[],
+    cmap=plt.get_cmap("PiYG"),
+    ax=ax3,
+    cbar=False,
+    annot=True,
+    center=0,
+    linewidths=0.5,
+    vmin=vmin,
+    vmax=vmax,
+)
+ax3.set_yticklabels(ax3.get_yticklabels(), rotation=0, fontsize=10)
+ax3.set_xlabel("shuffled gender \n word pairs")
+
+plt.show()
