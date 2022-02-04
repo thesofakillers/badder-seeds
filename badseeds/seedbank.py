@@ -11,6 +11,32 @@ from sklearn import datasets
 import os
 
 
+def clean(categories):
+    """
+    cleans seed .json file, sorts by category
+
+    Parametrs
+    -----------
+    categories : pandas DatatFrame
+        DataFrame with seeds and meta information
+
+    Returns
+    --------
+    x: Pandas DatatFrame
+        cleaned categories DataFrame with seeds and meta information
+
+    """
+
+    words = ["seed", "words", "terms", "attributes"]
+    # print(''.join([i for i in categories if not i.isdigit()]))
+    x = "".join([i for i in categories if not i.isdigit()])
+    x = " ".join([w for w in x.split() if not w in words])
+    x = x.replace("_", " ")
+    x = x.replace("/", " ")
+
+    return x
+
+
 def get_seeds(seeds, seed_list, id_loc="index"):
     """
     returns seed by seed id
