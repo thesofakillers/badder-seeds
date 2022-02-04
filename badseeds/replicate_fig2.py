@@ -5,36 +5,31 @@ import os
 import argparse
 import json
 
-from audioop import avg
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-import numpy.ma as ma
-from itertools import repeat
 from gensim.models import KeyedVectors
 import pandas as pd
 
-import badseeds.metrics as metrics
 import badseeds.seedbank as seedbank
 import badseeds.utils as utils
-
 
 
 def figure_2(seeds, datasets):
     """
     replicates figure 2 in Antoniak et al. (2016)
 
-    Parametrs
+    Parameters
     -----------
-    seeds : list of lists
+    seeds : list of list
         list of list of seeds
-    datasets: list of gensim KeyedVector type models
+    datasets : list of KeyedVector
         list of models containing word embeddings
 
     Returns
     --------
-    similarity: list of array types
+    similarity : list of array-like
         list of arrays with cosine similarity for each seedset and each dataset (model)
     """
 

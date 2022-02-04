@@ -5,50 +5,47 @@ replicates figure 4 in Atoniak et al. (2021)
 import argparse
 import json
 import os
-import itertools
 import collections
 
 from matplotlib import pyplot as plt
 import numpy as np
-import pandas as pd
 from gensim.models import KeyedVectors
 from sklearn.metrics.pairwise import cosine_similarity
 import seaborn as sns
 
-import badseeds.metrics as metrics
 import badseeds.seedbank as seedbank
 import badseeds.utils as utils
 import badseeds.replicate_bolukbasi as replicate_bolukbasi
 
 
-def figure_4(variance_ordered, variance_rnd, variance_inshuffle,models):
+def figure_4(variance_ordered, variance_rnd, variance_inshuffle, models):
     """
     replicates figure 4 in Antoniak et al. (2016)
 
-    Parametrs
+    Parameters
     -----------
     variance_ordered : array-like of float
         components of PCA on ordered seed set
-    variance_rnd: array-like of float
+    variance_rnd : array-like of float
         components of PCA on random seed set
-    variance_inshuffle: array-like of float
+    variance_inshuffle : array-like of float
         components of PCA on suffled seed set
-    models: list of KeyedVectors
+    models : list of KeyedVectors
         list of all KeyedVectors obtained through bootstrapping
 
     Returns
     --------
-    gender_pairs_values: list of floats
+    gender_pairs_values : list of floats
         cosine similarity of top & bottom 10 words in corpus
-    gender_pairs_words: list of strings
+    gender_pairs_words : list of strings
         words with cosine similarity of top & bottom 10 words in corpus
-    random_pairs_values: list of floats
+    random_pairs_values : list of floats
         cosine similarity of top & bottom 10 words in corpus
-    random_pairs_words: list of strings
+    random_pairs_words : list of strings
         words with cosine similarity of top & bottom 10 words in corpus
-    shuffled_gender_pairs_values: list of floats
+    shuffled_gender_pairs_values : list of floats
         cosine similarity of top & bottom 10 words in corpus
-    shuffled_gender_pairs_words: list of strings
+    shuffled_gender_pairs_words : list of strings
         words with cosine similarity of top & bottom 10 words in corpus
     """
 
@@ -69,9 +66,14 @@ def figure_4(variance_ordered, variance_rnd, variance_inshuffle,models):
         vals.append(v[:10] + v[-10:])
         words.append((w[:10] + w[-10:]))
 
-
-    return np.asarray(vals[0]), words[0], np.asarray(vals[1]), words[1], np.asarray(vals[2]), words[2]
-
+    return (
+        np.asarray(vals[0]),
+        words[0],
+        np.asarray(vals[1]),
+        words[1],
+        np.asarray(vals[2]),
+        words[2],
+    )
 
 
 if __name__ == "__main__":
@@ -103,7 +105,8 @@ if __name__ == "__main__":
         models.append(
             KeyedVectors.load_word2vec_format(
                 os.path.join(
-                    config["models"]["dir_path"], config["models"]["google_news_subpath"]
+                    config["models"]["dir_path"],
+                    config["models"]["google_news_subpath"],
                 )
                 + ".bin",
                 binary=True,
@@ -126,9 +129,9 @@ if __name__ == "__main__":
             if os.path.isfile(f):
                 f = os.fsdecode(f)
                 models.append(KeyedVectors.load(f))
-    
+
     else:
-        print('this corpus is not implemented')
+        print("this corpus is not implemented")
         exit()
 
     # get desired seeds:
@@ -138,7 +141,6 @@ if __name__ == "__main__":
         "definitional_female-Bolukbasi_et_al_2016",
         "definitional_male-Bolukbasi_et_al_2016",
     ]
-
 
     seed_list = [seed.loc[seed_set]["Seeds"] for seed_set in gender_seed_list]
     seed1 = seed_list[0]
@@ -210,11 +212,11 @@ if __name__ == "__main__":
     )
 
     (
-        gender_pairs_values, 
-        gender_pairs_words, 
-        random_pairs_values, 
-        random_pairs_words, 
-        shuffled_gender_pairs_values, 
+        gender_pairs_values,
+        gender_pairs_words,
+        random_pairs_values,
+        random_pairs_words,
+        shuffled_gender_pairs_values,
         shuffled_gender_pairs_words,
     ) = figure_4(variance_ordered, variance_rnd, variance_inshuffle, models)
 
@@ -277,3 +279,4 @@ if __name__ == "__main__":
     ax3.set_xlabel("shuffled gender \n word pairs")
 
     plt.show()
+

@@ -124,7 +124,7 @@ def preprocess_goodreads(
     name, path_to_dir="../data/", save_dir="./data/preprocessed_data/", save_path=None
 ):
     """
-    Preprocesses Goodreads datasets
+    Preprocesses Goodreads datasets and save to disk
 
     Parameters
     ----------
@@ -133,7 +133,8 @@ def preprocess_goodreads(
     path_to_dir : str, optional
         path to the directory containing the dataset, by default "../data/"
     save_dir : str, optional
-        path to the directory to save the preprocessed dataset, by default "../data/processed/"
+        path to the directory to save the preprocessed dataset,
+        by default "../data/processed/"
     """
     if os.path.isdir(os.path.join(save_dir, name)):
         print(f"Skipping Goodreads {name} because it is already processed")
@@ -200,8 +201,6 @@ def preprocess_wiki(
     else:
         with open(path_to_file, "r") as f:
             lines = f.readlines()
-        # remove lines with formulas
-        lines = [line for line in lines if line != " <formula> \n"]
         # determine document start indexes using combination of regex patterns
         title_regex = re.compile(" = .* = \n")
         subtitle_regex = re.compile(" = = .* = = \n")
@@ -284,8 +283,8 @@ def preprocess_datasets(config_dict):
 
 def read_pproc_datasets(nyt_path, wiki_path, grr_dir_path, grhb_dir_path):
     """
-    reads all the preprocessed datasets from disk, returning a dictionary
-    if a given path is not passed, the corresponding dataset is not read
+    reads all the preprocessed datasets from disk, returning a dictionary of docbins.
+    If a given path is not passed, the corresponding dataset is not read
     some datasets take a while to read, so this may be desired
     """
     pproc_datasets = {

@@ -1,7 +1,9 @@
-""" 
-code to replicate figure 3 of Antoniak et al. (2021) which is replicates parts of Bolukbasi et. al (2016)
+"""
+code to replicate figure 3 of Antoniak et al. (2021)
+which is replicates parts of Bolukbasi et. al (2016)
 code source: https://github.com/tolga-b/debiaswe
-data source: https://drive.google.com/drive/folders/0B5vZVlu2WoS5dkRFY19YUXVIU2M?resourcekey=0-rZ1HR4Fb0XCi4HFUERGhRA
+data source:
+https://drive.google.com/drive/folders/0B5vZVlu2WoS5dkRFY19YUXVIU2M?resourcekey=0-rZ1HR4Fb0XCi4HFUERGhRA
 """
 
 import json
@@ -63,7 +65,7 @@ def pca_seeds_model(
     """
 
     # draw random words from word2vec
-    if seed1_rnd == False and seed2_rnd == False:
+    if seed1_rnd is False and seed2_rnd is False:
         seed1_rnd = [random.randint(1, 4000) for i in range(10)]
         seed2_rnd = [random.randint(1, 4000) for i in range(10)]
         # ensure that random word is picked that is present across all models
@@ -78,7 +80,7 @@ def pca_seeds_model(
         print("random words:", seed1_rnd, seed2_rnd)
 
     # shuffled in place to test for cherry picking
-    if seed1_shuf == False and seed2_shuf == False:
+    if seed1_shuf is False and seed2_shuf is False:
         seed1_shuf = copy.deepcopy(seed1)
         (random.shuffle((seed1_shuf)))
         seed2_shuf = copy.deepcopy(seed2)
@@ -143,7 +145,8 @@ if __name__ == "__main__":
         models.append(
             KeyedVectors.load_word2vec_format(
                 os.path.join(
-                    config["models"]["dir_path"], config["models"]["google_news_subpath"]
+                    config["models"]["dir_path"],
+                    config["models"]["google_news_subpath"],
                 )
                 + ".bin",
                 binary=True,
@@ -166,7 +169,7 @@ if __name__ == "__main__":
                 f = os.fsdecode(f)
                 models.append(KeyedVectors.load(f))
     else:
-        print('this corpus is not implemented')
+        print("this corpus is not implemented")
         exit()
 
     # get desired seeds:
@@ -323,3 +326,4 @@ if __name__ == "__main__":
         ax.set_ylabel("Explained Variance")
         ax.set_title(seed_genres[idx])
     plt.show()
+
