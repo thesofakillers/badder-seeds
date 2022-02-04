@@ -158,7 +158,6 @@ def bootstrap(dataset, n=20):
     # load in file
     x = read_pproc_dataset(dataset)
 
-    print(type(x))
     bootstrap_samples = []
     data = np.asarray(list(docbin_to_docs(x)), dtype=object)
     length = len(data)
