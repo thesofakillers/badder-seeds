@@ -74,7 +74,6 @@ def spacy_and_save(documents, path):
     and POS tagging, then saves efficiently to binary file
     """
     bytes_data = run_spacy_pipe(documents)
-    print(path)
     with open(path, "wb") as f:
         f.write(bytes_data)
 
