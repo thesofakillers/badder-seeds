@@ -279,4 +279,3 @@ if __name__ == "__main__":
     ax3.set_xlabel("shuffled gender \n word pairs")
 
     plt.show()
-

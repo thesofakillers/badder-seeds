@@ -326,4 +326,3 @@ if __name__ == "__main__":
         ax.set_ylabel("Explained Variance")
         ax.set_title(seed_genres[idx])
     plt.show()
-

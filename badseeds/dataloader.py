@@ -13,10 +13,11 @@ class LoadTheData:
     Loads all the data.
 
     Parameters
-    ---------- 
+    ----------
     config : json file
-        json file containing path info        
+        json file containing path info
     """
+
     def __init__(self, config):
         self.config = config
 
