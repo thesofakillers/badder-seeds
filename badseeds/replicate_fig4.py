@@ -141,6 +141,8 @@ if __name__ == "__main__":
 
 
     seed_list = [seed.loc[seed_set]["Seeds"] for seed_set in gender_seed_list]
+    seed1 = seed_list[0]
+    seed2 = seed_list[1]
 
     # hard coded shuffled seeds from paper
     seed1_shuf = [
@@ -207,72 +209,71 @@ if __name__ == "__main__":
         components=True,
     )
 
-(
-    gender_pairs_values, 
-    gender_pairs_words, 
-    random_pairs_values, 
-    random_pairs_words, 
-    shuffled_gender_pairs_values, 
-    shuffled_gender_pairs_words,
-    
-) = figure_4(variance_ordered, variance_rnd, variance_inshuffle, models)
+    (
+        gender_pairs_values, 
+        gender_pairs_words, 
+        random_pairs_values, 
+        random_pairs_words, 
+        shuffled_gender_pairs_values, 
+        shuffled_gender_pairs_words,
+    ) = figure_4(variance_ordered, variance_rnd, variance_inshuffle, models)
 
-# plot
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
-fig.set_size_inches(w=6.50127, h=5)
-fig.tight_layout(rect=[0, 0, 0.9, 1], pad=6)
+    # plot
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    fig.set_size_inches(w=6.50127, h=5)
+    fig.tight_layout(rect=[0, 0, 0.9, 1], pad=6)
 
-all_values = np.concatenate(
-    [gender_pairs_values, random_pairs_values, shuffled_gender_pairs_values]
-)
-vmin, vmax = np.min(all_values), np.max(all_values)
+    all_values = np.concatenate(
+        [gender_pairs_values, random_pairs_values, shuffled_gender_pairs_values]
+    )
+    vmin, vmax = np.min(all_values), np.max(all_values)
 
-ax1 = sns.heatmap(
-    gender_pairs_values[::-1, np.newaxis],
-    yticklabels=gender_pairs_words,
-    xticklabels=[],
-    cmap=plt.get_cmap("PiYG"),
-    ax=ax1,
-    cbar=False,
-    annot=True,
-    center=np.zeros(1),
-    linewidths=0.5,
-    vmin=vmin,
-    vmax=vmax,
-)
-ax1.set_yticklabels(ax1.get_yticklabels(), rotation=0, fontsize=10)
-ax1.set_xlabel("gender word \n pairs")
+    ax1 = sns.heatmap(
+        gender_pairs_values[::-1, np.newaxis],
+        yticklabels=gender_pairs_words,
+        xticklabels=[],
+        cmap=plt.get_cmap("PiYG"),
+        ax=ax1,
+        cbar=False,
+        annot=True,
+        center=np.zeros(1),
+        linewidths=0.5,
+        vmin=vmin,
+        vmax=vmax,
+    )
+    ax1.set_yticklabels(ax1.get_yticklabels(), rotation=0, fontsize=10)
+    ax1.set_xlabel("gender word \n pairs")
 
-ax2 = sns.heatmap(
-    random_pairs_values[::-1, np.newaxis],
-    yticklabels=random_pairs_words,
-    xticklabels=[],
-    cmap=plt.get_cmap("PiYG"),
-    ax=ax2,
-    cbar=False,
-    annot=True,
-    center=0,
-    linewidths=0.5,
-    vmin=vmin,
-    vmax=vmax,
-)
-ax2.set_yticklabels(ax2.get_yticklabels(), rotation=0, fontsize=10)
-ax2.set_xlabel("random word \n pairs")
+    ax2 = sns.heatmap(
+        random_pairs_values[::-1, np.newaxis],
+        yticklabels=random_pairs_words,
+        xticklabels=[],
+        cmap=plt.get_cmap("PiYG"),
+        ax=ax2,
+        cbar=False,
+        annot=True,
+        center=0,
+        linewidths=0.5,
+        vmin=vmin,
+        vmax=vmax,
+    )
+    ax2.set_yticklabels(ax2.get_yticklabels(), rotation=0, fontsize=10)
+    ax2.set_xlabel("random word \n pairs")
 
-ax3 = sns.heatmap(
-    shuffled_gender_pairs_values[::-1, np.newaxis],
-    yticklabels=shuffled_gender_pairs_words,
-    xticklabels=[],
-    cmap=plt.get_cmap("PiYG"),
-    ax=ax3,
-    cbar=False,
-    annot=True,
-    center=0,
-    linewidths=0.5,
-    vmin=vmin,
-    vmax=vmax,
-)
-ax3.set_yticklabels(ax3.get_yticklabels(), rotation=0, fontsize=10)
-ax3.set_xlabel("shuffled gender \n word pairs")
+    ax3 = sns.heatmap(
+        shuffled_gender_pairs_values[::-1, np.newaxis],
+        yticklabels=shuffled_gender_pairs_words,
+        xticklabels=[],
+        cmap=plt.get_cmap("PiYG"),
+        ax=ax3,
+        cbar=False,
+        annot=True,
+        center=0,
+        linewidths=0.5,
+        vmin=vmin,
+        vmax=vmax,
+    )
+    ax3.set_yticklabels(ax3.get_yticklabels(), rotation=0, fontsize=10)
+    ax3.set_xlabel("shuffled gender \n word pairs")
 
-plt.show()
+    plt.show()
