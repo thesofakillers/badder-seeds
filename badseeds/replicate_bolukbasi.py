@@ -65,6 +65,7 @@ def pca_seeds_model(
         seed2_rnd = [random.randint(1, 4000) for i in range(10)]
         # ensure that random word is picked that is present across all models
         collect = collections.Counter(models[0].index_to_key)
+        s = 0
         for model in models[1:]:
             s += len(model.index_to_key)
             collect = (collect & collections.Counter(model.index_to_key))
