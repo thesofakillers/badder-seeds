@@ -9,10 +9,30 @@ import gdown
 
 
 class LoadTheData:
+    """
+    Loads all the data.
+
+    Parameters
+    ---------- 
+    config : json file
+        json file containing path info        
+    """
     def __init__(self, config):
         self.config = config
 
     def download_and_unzip(self, destination, out_file_path, file_id):
+        """
+        Downloads and unzips the data with file_id at destination
+
+        Parameters
+        ----------
+        destination : str
+            path to destination
+        out_file_path : str
+            path to the file to save the downloaded file
+        file_id : str
+            string with the google drive id to download
+        """
         name = destination.split(".")[-3]
         if not os.path.isfile(destination):
             url = "https://drive.google.com/uc?id=" + file_id
@@ -38,6 +58,18 @@ class LoadTheData:
                 raise ValueError("Extension not supported yet")
 
     def unzip_folder(self, destination, out_file_path, file_id):
+        """
+        Unzips the data with file_id at destination
+
+        Parameters
+        ----------
+        destination : str
+            path to destination
+        out_file_path : str
+            path to the file to save the downloaded file
+        file_id : str
+            string with the google drive id to download
+        """
         name = destination.split(".")[-3]
         if not os.path.isfile(destination):
             url = "https://drive.google.com/uc?id=" + file_id
@@ -52,6 +84,9 @@ class LoadTheData:
                 print(f"Finished unzipping the {destination} dataset")
 
     def download_raw(self):
+        """
+        Downloads all the raw data from google drive
+        """
         raw_path = self.config["raw"]["dir_path"]
         # Create folder for data
         if not os.path.isdir(raw_path):
@@ -85,6 +120,9 @@ class LoadTheData:
         self.download_and_unzip(destination, out_file_path, file_id)
 
     def download_seeds(self):
+        """
+        Downloads all the seeds from google drive
+        """
         seeds_path = self.config["seeds"]["dir_path"]
         # Create folder for seed data
         if not os.path.isdir(seeds_path):
@@ -101,6 +139,9 @@ class LoadTheData:
         print("Seeds are downloaded!")
 
     def download_preprocessed(self):
+        """
+        Downloads all the preprocessed files from google drive
+        """
         pproc_path = self.config["preprocessed"]["dir_path"]
         if not os.path.isdir(pproc_path):
             os.makedirs(pproc_path)
@@ -113,6 +154,9 @@ class LoadTheData:
         self.unzip_folder(destination, out_file_path, file_id)
 
     def download_models(self):
+        """
+        Downloads all the models from google drive
+        """
         models_path = self.config["models"]["dir_path"]
         if not os.path.isdir(models_path):
             os.makedirs(models_path)
@@ -189,6 +233,9 @@ class LoadTheData:
             self.unzip_folder(destination, out_file_path, file_id)
 
     def download_all(self):
+        """
+        Downloads everything (raw, seeds, preprocessed, models) from google drive
+        """
         self.download_raw()
         self.download_seeds()
         self.download_preprocessed()

@@ -28,7 +28,6 @@ def clean(categories):
     """
 
     words = ["seed", "words", "terms", "attributes"]
-    # print(''.join([i for i in categories if not i.isdigit()]))
     x = "".join([i for i in categories if not i.isdigit()])
     x = " ".join([w for w in x.split() if not w in words])
     x = x.replace("_", " ")
