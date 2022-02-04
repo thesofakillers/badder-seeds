@@ -39,6 +39,7 @@ mypy = "^0.931"
 jupyterlab-code-formatter = "^1.4.10"
 nbdime = "^3.1.1"
 types-requests = "^2.27.7"
+pyment = "^0.3.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
