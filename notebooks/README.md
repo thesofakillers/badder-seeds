@@ -23,6 +23,8 @@ description
   replication of Fig. 2 in the original paper.
 - [fig_4.ipynb](fig_4.ipynb) Is for producing Figure 4 in our report, which is a
   replication and extension of Fig. 5 in the original paper.
+- [fig_a.1.ipynb](fig_a.1.ipynb) Is for producing Figure A.1 of our report which
+  is a replication of Figure 1 in the original paper.
 - [tab_a.1.ipynb](tab_a.1.ipynb) Is for producing Table A.1 in our report, which
   is a replication of Table 2 in the original paper
 - [tab_a.2.ipynb](tab_a.2.ipynb) Is for producing Table A.2 in our report, which
