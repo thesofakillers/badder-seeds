@@ -139,11 +139,8 @@ if __name__ == "__main__":
         "definitional_male-Bolukbasi_et_al_2016",
     ]
 
-    # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
 
     seed_list = [seed.loc[seed_set]["Seeds"] for seed_set in gender_seed_list]
-    seed1 = [item for item in seed_list[0]]
-    seed2 = [item for item in seed_list[1]]
 
     # hard coded shuffled seeds from paper
     seed1_shuf = [
