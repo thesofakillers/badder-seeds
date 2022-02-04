@@ -77,15 +77,6 @@ notebooks that can be run to reproduce the results of our paper.
 For more curious users, we invite them to visit the [badseeds/](badseeds/)
 subdirectory which contains the actual implementation details.
 
-NOTE: For running the scripts in [badseeds/](badseeds/), run them from the
-project root. DO NOT change your directory to the badseeds directory. For
-example, to run [badseeds/fig_4.py](badseeds/fig_4.py), you would run the
-following command FROM THE ROOT directory of this repository:
-
-```console
-python badseeds/fig_4.py
-```
-
 ## Development
 
 ### Packages and Environment

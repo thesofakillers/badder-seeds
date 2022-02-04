@@ -1,6 +1,6 @@
 import argparse
 import gensim.models as gm
-from badseeds import utils
+import utils
 from tqdm import tqdm
 import os
 import numpy as np

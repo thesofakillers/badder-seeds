@@ -12,8 +12,8 @@ import numpy as np
 from gensim.models import KeyedVectors
 import pandas as pd
 
-import badseeds.seedbank as seedbank
-import badseeds.utils as utils
+import seedbank
+import utils
 
 
 def figure_3(seeds, datasets):

@@ -17,8 +17,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from gensim.models import KeyedVectors
 
-import badseeds.seedbank as seedbank
-import badseeds.metrics as metrics
+import seedbank
+import metrics
 
 random.seed(42)
 

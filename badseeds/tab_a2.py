@@ -7,7 +7,9 @@ from tqdm import tqdm
 import numpy as np
 import random
 
-from badseeds import utils, metrics, seedbank
+import utils
+import metrics
+import seedbank
 
 
 def merge_on_list(left: pd.DataFrame, right: pd.DataFrame, by: list):

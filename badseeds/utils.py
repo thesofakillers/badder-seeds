@@ -1,7 +1,8 @@
 import numpy as np
-from badseeds.preprocess import read_pproc_dataset, docbin_to_docs
 import gensim.models as gm
 import scipy.stats.stats as st
+
+from preprocess import read_pproc_dataset, docbin_to_docs
 
 
 def get_embeddings(word_list, models, query_strat="average"):

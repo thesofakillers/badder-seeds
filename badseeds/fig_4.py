@@ -14,7 +14,10 @@ from tqdm import tqdm
 import gensim.models as gm
 import matplotlib.pyplot as plt
 
-from badseeds import seedbank, utils, metrics, tab_a2
+import seedbank
+import utils
+import metrics
+import tab_a2
 
 
 def comp_fig_4_metrics(

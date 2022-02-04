@@ -13,9 +13,9 @@ from gensim.models import KeyedVectors
 from sklearn.metrics.pairwise import cosine_similarity
 import seaborn as sns
 
-import badseeds.seedbank as seedbank
-import badseeds.utils as utils
-import badseeds.replicate_bolukbasi as replicate_bolukbasi
+import seedbank
+import utils
+import replicate_bolukbasi
 
 
 def figure_1(variance_ordered, variance_rnd, variance_inshuffle, models):
