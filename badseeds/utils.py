@@ -224,32 +224,3 @@ def generate_seed_set(
 
     # return seed list
     return first + neighbors
-
-
-def catch_keyerror(models, word):
-    """
-    gets word from first model, but doesnt throw an error when no key found
-
-    Parametrs
-    -----------
-
-    models: list of KeyedVector
-        list of skipgram models
-    word: string
-        word that we want to get the embedding from
-
-    """
-    try:
-        if type(models) is list:
-            avg = [
-                catch_keyerror(model, word)
-                if catch_keyerror(model, word) is not None
-                else np.zeros((100))
-                for model in models
-            ]
-            return np.mean(avg, axis=0)
-        else:
-            return models[word]
-    except KeyError as e:
-        print(e)
-        return None

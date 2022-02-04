@@ -1,5 +1,5 @@
 """ 
-code to replicate parts of Bolukbasi et. al 2016 
+code to replicate figure 3 of Antoniak et al. (2021) which is replicates parts of Bolukbasi et. al (2016)
 code source: https://github.com/tolga-b/debiaswe
 data source: https://drive.google.com/drive/folders/0B5vZVlu2WoS5dkRFY19YUXVIU2M?resourcekey=0-rZ1HR4Fb0XCi4HFUERGhRA
 """
@@ -9,10 +9,9 @@ import argparse
 import copy
 import os
 import collections
-
+import random
 
 from matplotlib import pyplot as plt
-import random
 import numpy as np
 from gensim.models import KeyedVectors
 
@@ -37,14 +36,18 @@ def pca_seeds_model(
 
     Parametrs
     -----------
-    seed1 : list of floats
-        embeddings of seeds
-    seed2 : list of floats
-        embeddings of seeds
-    seed1_shuf : list of floats
-        embeddings of shuffled seeds
-    seed2_shuf : list of floats
-        embeddings of shuffled seeds
+    seed1 : list of strings or ints
+        embeddings of seeds or seed words
+    seed2 : list of strings or ints
+        embeddings of seedsor seed words
+    seed1_shuf : list of strings or ints
+        embeddings of shuffled seeds or seed words
+    seed2_shuf : list of strings or ints
+        embeddings of shuffled seeds or seed words
+    seed1_rnd : list of strings or ints
+        embeddings of shuffled seeds or seed words
+    seed2_rnd : list of strings or ints
+        embeddings of shuffled seeds or seed words
     models: list of KeyedVector objects (Gensim)
         trained skipgram model
 
@@ -110,7 +113,7 @@ def pca_seeds_model(
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
-        description="Replicates figure 4 in Atoniak et al. (2021)"
+        description="Replicates figure 3 in Atoniak et al. (2021)"
     )
     parser.add_argument(
         "-c",
@@ -119,6 +122,15 @@ if __name__ == "__main__":
         default="config.json",
         type=str,
     )
+
+    parser.add_argument(
+        "-d",
+        "--corpus",
+        type=str,
+        default="googlenews",
+        help="Use embeddings from skip-gram trained on this corpus",
+    )
+
     args = parser.parse_args()
     with open(args.config, "r") as f:
         config = json.load(f)
@@ -127,33 +139,37 @@ if __name__ == "__main__":
 
     # load google news word2vec
     # Load vectors directly from the file
-    models.append(
-        KeyedVectors.load_word2vec_format(
-            os.path.join(
-                config["models"]["dir_path"], config["models"]["google_news_subpath"]
+    if args.corpus == "googlenews":
+        models.append(
+            KeyedVectors.load_word2vec_format(
+                os.path.join(
+                    config["models"]["dir_path"], config["models"]["google_news_subpath"]
+                )
+                + ".bin",
+                binary=True,
             )
-            + ".bin",
-            binary=True,
         )
-    )
 
-    # direct = os.fsencode(
-    #     os.path.join(
-    #         config["models"]["dir_path"], config["models"]["nyt_subpath"]["10"]
-    #     )
-    # )
+    elif args.corpus == "nyt":
+        direct = os.fsencode(
+            os.path.join(
+                config["models"]["dir_path"], config["models"]["nyt_subpath"]["10"]
+            )
+        )
 
-    # for filename in os.listdir(direct):
-    #     print(filename)
-    #     f = os.path.join(direct, filename)
+        for filename in os.listdir(direct):
+            print(filename)
+            f = os.path.join(direct, filename)
 
-    #     # checking if it is a file
-    #     if os.path.isfile(f):
-    #         f = os.fsdecode(f)
-    #         models.append(KeyedVectors.load(f))
+            # checking if it is a file
+            if os.path.isfile(f):
+                f = os.fsdecode(f)
+                models.append(KeyedVectors.load(f))
+    else:
+        print('this corpus is not implemented')
+        exit()
 
     # get desired seeds:
-
     seed = seedbank.seedbanking(config["seeds"]["dir_path"] + "seeds.json", index="ID")
 
     seed_genres = ["gender pairs", "social class pairs", "chinese-hispanic name pairs"]
@@ -174,7 +190,6 @@ if __name__ == "__main__":
     ]
 
     # hard coded shuffled seeds from paper
-
     shuffled_seeds = [
         [
             [
@@ -270,7 +285,6 @@ if __name__ == "__main__":
     ]
 
     # Visualization
-
     x = np.arange(10)
     width = 0.4
     fig, axes = plt.subplots(1, 3)
@@ -278,10 +292,9 @@ if __name__ == "__main__":
     # for row in axes
     for idx, ax in enumerate(axes):
 
-        # lower case seeds? she didnt do it in appendix (doesnt make sense tho)
         seed_lists = [seed.loc[seed_set]["Seeds"] for seed_set in seed_list[idx]]
-        seed1 = [item.lower() for item in seed_lists[0]]
-        seed2 = [item.lower() for item in seed_lists[1]]
+        seed1 = seed_lists[0]
+        seed2 = seed_lists[1]
 
         seed1_shuf = (shuffled_seeds[idx])[0]
         seed2_shuf = (shuffled_seeds[idx])[1]
@@ -310,8 +323,3 @@ if __name__ == "__main__":
         ax.set_ylabel("Explained Variance")
         ax.set_title(seed_genres[idx])
     plt.show()
-
-    # thoughts:
-    # can kind of replicate with given seeds b) but seems super cherrypicked to suffle seed (in reality they seem to be quite close together)
-    # can not really replicate, but a) 'gal' is just in no dataset - explained variance of 1PC huge
-    # doesnt make any sense for her to not lower case seeds, when corpus is lower cased wtf
