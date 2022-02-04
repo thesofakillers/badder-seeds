@@ -8,9 +8,19 @@ import numpy as np
 
 def train_word2vec(data: list, params: dict) -> gm.keyedvectors.KeyedVectors:
     """Trains word2vec gensim model on fed sentence data
-    :param list data: list of sentences to feed gensim model
-    :param dict params: parameters of the gensim function
-    :returns KeyedVectors word_vectors: embeddings for gensim model keyed by word"""
+
+    Parameters
+    ----------
+    data : list
+        list of sentences to feed gensim model
+    params : dict
+        parameters of the gensim function
+
+    Returns
+    -------
+    word_vectors : gm.keyedvectors.KeyedVectors
+        embeddings for gensim model keyed by word
+    """
 
     model = gm.Word2Vec(sentences=data, **params)
     return model.wv
@@ -20,12 +30,19 @@ def bootstrap_train(
     data_path: str, models_dir: str, params: dict, seed: int = 42, n: int = 20
 ) -> None:
     """Trains word2vec model through bootstrapping n times and saves.
-    :param str data_path: path to the data to train on
-    :param int n: number of times to bootstrap. Default is 20.
-    :param str models_dir: directory to save model data
-    :param dict params: parameters of word2vec model
-    :param int seed: seed for random number generator. Default is 42
-    :returns None
+
+    Parameters
+    ----------
+    data_path : str
+        path to the data to train on
+    n : int
+        number of times to bootstrap. Default is 20.
+    models_dir : str
+        directory to save model data
+    params : dict
+        parameters of word2vec model
+    seed : int
+        seed for random number generator. Default is 42
     """
 
     # set numpy seed for bootstrap sample reproducibility
@@ -46,14 +63,14 @@ def bootstrap_train(
     samples = utils.bootstrap(data_path, n)
     for i, s in enumerate(samples):
         print(f"Sample {i + 1}, building dataset:")
-        pos_vocab = {}
+        pos_vocab: dict = {}
         sample_text = []
         for doc in tqdm(s, unit="documents"):
             doc_text = []
             for token in doc:
                 doc_text.append(token.text)
                 if token.text in pos_vocab.keys():
-                    if not token.tag_ in pos_vocab[token.text]:
+                    if token.tag_ not in pos_vocab[token.text]:
                         pos_vocab[token.text].append(token.tag_)
                 else:
                     pos_vocab[token.text] = [token.tag_]
@@ -73,7 +90,8 @@ def bootstrap_train(
         file_path = os.path.join(save_path, file_name)
         if os.path.exists(file_path):
             print(
-                f"{file_path} already exists, skipping. Delete this file to save re-trained vectors."
+                f"{file_path} already exists, skipping. "
+                "Delete this file to save re-trained vectors."
             )
         else:
             model.save(file_path)
