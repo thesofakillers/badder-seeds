@@ -1,12 +1,12 @@
 """
 Computes Fig 5 metrics given a set of parameters.
 """
-import sys
 import os
 import random
 import itertools
 import argparse
 import json
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -26,8 +26,40 @@ def comp_fig_5_metrics(
     min_freq: int = 10,
     seed: int = 42,
     verbose: bool = False,
-):
+) -> Tuple[List[float], List[float], List[float], List[float]]:
+    """
+    Computes metrics for plotting figure 5 given a set of parameters.
 
+    Parameters
+    ----------
+    seeds : pd.core.frame.DataFrame
+        Dataframe containing of seeds produced by `badseeds.seedbank.seedbanking`.
+    pair_df : pd.core.frame.DataFrame
+        DataFrame of paired IDs, read from seed_set_pairings.csv.
+    config : dict
+        Dictionary specifying file paths.
+    corpus : str, default wiki
+        Which corpus to use. One of "goodreads_hb", "goodreads_r", "wiki", "nyt"
+    mode : str, default PCA
+        Which mode to use. One of "PCA", "Coherence"
+    min_freq : int, default 10
+        Minimum frequency of a word to be included in the model.
+    seed : int, default 42
+        Random seed.
+    verbose : bool, default False
+        Whether to print progress.
+
+    Returns
+    -------
+    gathered_y_values : List[float]
+        List of y values (Explained Variance Ratio or Coherence) for the gathered seeds
+    generated_y_values : List[float]
+        List of y values (Explained Variance Ratio or Coherence) for the generated seeds
+    gathered_set_sim : List[float]
+        List of set similarity scores for the gathered seeds
+    generated_set_sim : List[float]
+        List of set similarity scores for the generated seeds
+    """
     assert corpus in [
         "goodreads_hb",
         "goodreads_r",
@@ -75,10 +107,6 @@ def comp_fig_5_metrics(
         utils.get_embeddings(seed_set, models, query_strat="average")
         for seed_set in tqdm(gathered_seeds, disable=not verbose)
     ]
-    gathered_id2emb = {
-        set_id: embeddings
-        for set_id, embeddings in zip(seeds["Seeds ID"], gathered_seeds_embeddings)
-    }
     generated_seeds_embeddings = [
         utils.get_embeddings(seed_set, models, query_strat="average")
         for seed_set in tqdm(generated_seeds, disable=not verbose)
@@ -92,10 +120,6 @@ def comp_fig_5_metrics(
         seeds[seeds["Seeds ID"].isin(pair)].index.to_list()
         for pair in tqdm(pair_ids, disable=not verbose)
     ]
-    gathered_pairs = [
-        [gathered_seeds[i], gathered_seeds[j]]
-        for (i, j) in tqdm(pair_idxs, disable=not verbose)
-    ]
     gathered_emb_pairs = [
         [gathered_seeds_embeddings[i], gathered_seeds_embeddings[j]]
         for (i, j) in tqdm(pair_idxs, disable=not verbose)
@@ -108,7 +132,6 @@ def comp_fig_5_metrics(
         i[0]
         for i in sorted(enumerate(generated_pairs), key=lambda x: (x[1][0], x[1][1]))
     ]
-    sorted_gen_pairs = [generated_pairs[i] for i in gen_pair_sort_idxs]
     sorted_gen_emb_pairs = [generated_emb_pairs[i] for i in gen_pair_sort_idxs]
 
     if mode == "PCA":
