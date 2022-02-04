@@ -54,9 +54,12 @@ Users are strongly encouraged to read [DATA.md](DATA.md) before proceeding
 │   └── results.ipynb
 ├── README.md # you are here
 ├── DATA.md # documentation on data
-├── environment.yml # if you are using conda
 ├── poetry.lock # handled by poetry
 ├── pyproject.toml # if you are using poetry
+├── gen_pip_conda_files.sh # for generating the pip and conda files with poetry
+├── seed_set_pairings.csv # the gathered seed set pairings we contribute
+├── config.json # example config file specifying dir/file paths
+├── environment.yml # if you are using conda
 └── requirements.txt # if you are using pip
 ```
 
