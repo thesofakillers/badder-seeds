@@ -67,11 +67,11 @@ def pca_seeds_model(
         collect = collections.Counter(models[0].index_to_key)
         for model in models[1:]:
             s += len(model.index_to_key)
-            collect = (collect & collections.Counter(model.index_to_key))
+            collect = collect & collections.Counter(model.index_to_key)
         overlap_list = list((collect).elements())
         seed1_rnd = np.asarray(overlap_list)[seed1_rnd]
         seed2_rnd = np.asarray(overlap_list)[seed2_rnd]
-        print('random words:', seed1_rnd, seed2_rnd)
+        print("random words:", seed1_rnd, seed2_rnd)
 
     # shuffled in place to test for cherry picking
     if seed1_shuf == False and seed2_shuf == False:
