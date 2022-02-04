@@ -1,12 +1,8 @@
-import argparse
 import os
 import gzip
 import shutil
 from zipfile import ZipFile
 import requests
-import getopt
-import sys
-import json
 
 import torchtext
 import gdown
@@ -50,7 +46,6 @@ class LoadTheData:
         if not os.path.isfile(out_file_path):
             print(f"Unzipping the {name} dataset")
 
-            extension = destination.split(".")[-1]
             with ZipFile(destination, "r") as zip:
                 print("Extracting all the files now...")
                 zip.extractall(out_file_path)
