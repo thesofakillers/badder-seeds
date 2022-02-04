@@ -40,6 +40,13 @@ Finally, if neither of the above options are desired, we also provide a
 pip install -r requirements.txt
 ```
 
+NOTE: After installation is complete, please run the following command to
+download the necessary language files for spacy:
+
+```console
+python -m spacy download en_core_web_sm
+```
+
 #### Data and Models
 
 Users are strongly encouraged to read [DATA.md](DATA.md) before proceeding
