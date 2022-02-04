@@ -9,17 +9,17 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
-def set_similarity(set_a, set_b, allow_missing=True):
+def set_similarity(set_a, set_b, allow_missing=True) -> float:
     """
     Computes the cosine similarity between the mean vectors of two sets.
 
     Parameters
     ----------
-    set_a: array-like of float
+    set_a : array-like of float
         (N, D) array of word embeddings, constituting the first set.
-    set_b: array-like of float
+    set_b : array-like of float
         (N, D) array of word embeddings, constituting the second set.
-    allow_missing: bool
+    allow_missing : bool
         indicates whether missing words are allowed in the set.
         missing words indicated by array of NaN embeddings
 
@@ -264,10 +264,10 @@ def rank_by_cos_sim(
 
     Returns
     -------
-    cos_sim_rank: array-like of ints
+    cos_sim_rank : array-like of int
         Argsort indeces that would sort the embeddings
         by similarity to bias subspace vector.
-    idx2w: list of strings
+    idx2w : list of str
         List of words in vocab, indexed by idx, used to fetch word.
     """
 
