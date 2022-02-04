@@ -1,19 +1,19 @@
 {
   "raw": {
-    "dir_path": "./data/raw/",
+    "dir_path": "../data/raw/",
     "wiki_subpath": "WikiText103/WikiText103",
     "goodreads_hb_subpath": "goodreads_reviews_history_biography",
     "goodreads_r_subpath": "goodreads_reviews_romance",
     "nyt_subpath": "nytimes_news_articles"
   },
   "seeds": {
-    "dir_path": "./data/seeds/"
+    "dir_path": "../data/seeds/"
   },
   "preprocessed": {
-    "dir_path": "./data/preprocessed_data/"
+    "dir_path": "../data/preprocessed_data/"
   },
   "models": {
-    "dir_path": "./data/models/",
+    "dir_path": "../data/models/",
     "google_news_subpath": "GoogleNews-vectors-negative300",
     "goodreads_hb_subpath": {
       "0": "history_biography_min0",
@@ -37,6 +37,6 @@
     }
   },
   "pairs": {
-    "dir_path": "./"
+    "dir_path": "../"
   }
 }
