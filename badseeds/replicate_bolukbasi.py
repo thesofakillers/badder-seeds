@@ -8,6 +8,8 @@ import json
 import argparse
 import copy
 import os
+import collections
+
 
 from matplotlib import pyplot as plt
 import random
@@ -61,12 +63,15 @@ def pca_seeds_model(
     if seed1_rnd == False and seed2_rnd == False:
         seed1_rnd = [random.randint(1, 4000) for i in range(10)]
         seed2_rnd = [random.randint(1, 4000) for i in range(10)]
-
-    # # shufffled seeds (not needed as of my interpretation)
-    # shuffled_list = seed_female + seed_male
-    # random.shuffle((shuffled_list))
-    # seed1_shuffled = shuffled_list[:10]
-    # seed2_shuffled = shuffled_list[10:]
+        # ensure that random word is picked that is present across all models
+        collect = collections.Counter(models[0].index_to_key)
+        for model in models[1:]:
+            s += len(model.index_to_key)
+            collect = (collect & collections.Counter(model.index_to_key))
+        overlap_list = list((collect).elements())
+        seed1_rnd = np.asarray(overlap_list)[seed1_rnd]
+        seed2_rnd = np.asarray(overlap_list)[seed2_rnd]
+        print('random words:', seed1_rnd, seed2_rnd)
 
     # shuffled in place to test for cherry picking
     if seed1_shuf == False and seed2_shuf == False:
@@ -74,10 +79,6 @@ def pca_seeds_model(
         (random.shuffle((seed1_shuf)))
         seed2_shuf = copy.deepcopy(seed2)
         (random.shuffle((seed2_shuf)))
-
-    # variance_ordered = np.zeros((10, len(models)))
-    # variance_rnd = np.zeros((10, len(models)))
-    # variance_inshuffle = np.zeros((10, len(models)))
 
     variance_ordered = []
     variance_rnd = []

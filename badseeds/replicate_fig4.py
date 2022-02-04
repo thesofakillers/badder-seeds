@@ -164,8 +164,6 @@ if __name__ == "__main__":
         models,
         seed1_shuf,
         seed2_shuf,
-        seed1_rnd,
-        seed2_rnd,
         components=True,
     )
 

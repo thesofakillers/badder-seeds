@@ -87,7 +87,8 @@ def seedbanking(dataset, index=False, filter_bigrams=True, filter_short=True):
     seeds = pd.read_json(dataset)
     seeds["Category"] = seeds["Category"].apply(clean)
     # convert string representation of list to list
-    seeds["Seeds"] = seeds["Seeds"].apply(lambda x: eval(clean(x)))
+    seeds["Seeds"] = seeds["Seeds"].apply(clean).str.lower()
+    seeds["Seeds"] = seeds["Seeds"].apply(eval)
     if filter_bigrams:
         # remove bigrams in seed sets
         seeds["Seeds"] = seeds["Seeds"].apply(

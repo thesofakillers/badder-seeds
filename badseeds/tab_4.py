@@ -36,19 +36,22 @@ def merge_on_list(left: pd.DataFrame, right: pd.DataFrame, by: list):
     return joined
 
 
-def agg_coherence(all_coh: pd.DataFrame):
+def agg_coherence(all_coh: pd.DataFrame, sort: bool = True):
     """
     Returns average and rounded coherence across models
     :param list all_coh: list of coherence dataframes for each model
+    :param bool sort: whether to sort dataframe by coherence, default True
     :returns pd.DataFrame coh_avg: dataframe of average coherence across models for seed pairs
     """
 
     # average coherence scores across models
     coh_con = pd.concat(all_coh)
     if "Set ID A" in coh_con.columns and "Set ID B" in coh_con.columns:
-        coh_avg = coh_con.groupby(["Set ID A", "Set ID B"]).agg({"Coherence": ["mean"]})
+        coh_avg = coh_con.groupby(["Set ID A", "Set ID B"]).agg(
+            {"Coherence": [np.nanmean]}
+        )
     else:
-        coh_avg = coh_con.groupby(["Set A", "Set B"]).agg({"Coherence": ["mean"]})
+        coh_avg = coh_con.groupby(["Set A", "Set B"]).agg({"Coherence": [np.nanmean]})
 
     coh_avg.columns = ["Coherence"]
     coh_avg = coh_avg.reset_index()
@@ -58,7 +61,8 @@ def agg_coherence(all_coh: pd.DataFrame):
             lambda x: eval(x)
         )
 
-    coh_avg = coh_avg.sort_values(by="Coherence", ascending=False)
+    if sort:
+        coh_avg = coh_avg.sort_values(by="Coherence", ascending=False)
 
     return coh_avg
 
@@ -124,6 +128,7 @@ def build_row_table4(
     seeds: pd.DataFrame,
     pairing_method: str = "window",
     pair_path: str = None,
+    nan_not_skip: bool = False,
     coh_mode: str = "weat",
 ) -> pd.DataFrame:
     """
@@ -135,6 +140,7 @@ def build_row_table4(
         'window' for moving window, 'all' for all possible pairs
         'file' when loading pairing data, requires pair_path
     :param str pair_path: path to pairing data, if pairing_method is 'file'. Default is None
+    :param bool nan_not_skip: whether to set coherence to NaN instead of skipping
     :param str coh_mode: coherence mode to use. "weat" for WEAT, "pca" for PCA. Default is "weat".
     :returns pd.DataFrame results: dataframe of coher. metrics for every poss. pair of seed sets
     """
@@ -162,13 +168,19 @@ def build_row_table4(
                     try:
                         # to avoid overlapping seeds
                         if set(seeds.Seeds[i]) & set(seeds.Seeds[j]):
-                            continue
-                        coh = metrics.coherence(
-                            model, seeds.Seeds[i], seeds.Seeds[j], mode=coh_mode
-                        )
+                            if nan_not_skip:
+                                coh = np.nan
+                            else:
+                                continue
+                        else:
+                            coh = metrics.coherence(
+                                model, seeds.Seeds[i], seeds.Seeds[j]
+                            )
                     except KeyError:
-                        # print("One of seeds not found in model.")
-                        continue
+                        if nan_not_skip:
+                            coh = np.nan
+                        else:
+                            continue
                     append_row(coh, results, seeds, i, j)
     else:
         for k in range(pairs.shape[0]):
@@ -184,13 +196,15 @@ def build_row_table4(
                         model, seeds.Seeds[i], seeds.Seeds[j], mode=coh_mode
                     )
                 except KeyError:
-                    continue
-
+                    if nan_not_skip:
+                        coh = np.nan
+                    else:
+                        continue
                 append_row(coh, results, seeds, i, j)
 
     # normalize
     results = {k: v for k, v in results.items() if v}
-    results["Coherence"] /= np.max(results["Coherence"])
+    results["Coherence"] /= np.nanmax(results["Coherence"])
 
     # make into df
     results = pd.DataFrame(results)
