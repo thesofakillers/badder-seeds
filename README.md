@@ -1,11 +1,8 @@
 # Bad Seeds: Evaluating Lexical Methods for Bias Measurement
 
-This repository contains the code for reproducing the results presented in the
-paper
-[_Bad Seeds: Evaluating Lexical Methods for Bias Measurement_](https://aclanthology.org/2021.acl-long.148/)
-as presented in our paper _Badder Seeds: Reproducing the Evaluation of Lexical
-Methods for Bias Measurement_ as part of the
-[2021 ML Reproducibility Challenge](https://paperswithcode.com/rc2021/)
+This repository contains the code for our published paper [_[Re] Badder Seeds: Reproducing the Evaluation of Lexical Methods for Bias Measurement_](https://zenodo.org/record/6574705), where we worked on reproducing the paper
+[_Bad Seeds: Evaluating Lexical Methods for Bias Measurement_](https://aclanthology.org/2021.acl-long.148/) as part of the
+[2021 ML Reproducibility Challenge](https://paperswithcode.com/rc2021/).
 
 ## Usage
 
