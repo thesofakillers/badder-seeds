@@ -4,6 +4,14 @@ data/
 models/
 .vim/
 .vscode/
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
 
 # Mac stuff
 .DS_Store

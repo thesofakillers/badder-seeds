@@ -55,10 +55,11 @@ Users are strongly encouraged to read [DATA.md](DATA.md) before proceeding
 
 ```bash
 .
-├── badseeds # scripts
+├── badseeds/ # scripts
 │   └── __init__.py
-├── notebooks # notebooks for reproduction, which import scripts
+├── notebooks/ # notebooks for reproduction, which import scripts
 │   └── results.ipynb
+├── report/ # files for typesetting our report
 ├── README.md # you are here
 ├── DATA.md # documentation on data
 ├── poetry.lock # handled by poetry
